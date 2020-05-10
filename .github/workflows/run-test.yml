@@ -21,5 +21,7 @@ jobs:
       run: ./checkout_prebuilt_binary_for_ci.sh ${{ secrets.RAFI_PREBUILT_BINARY_USER }} ${{ secrets.RAFI_PREBUILT_BINARY_ACCESS_TOKEN }}  
     - name: update environment variables
       run: export PATH=$PATH:`pwd`/rafi-prebuilt-binary/verilator/Linux-x86_64/bin
+    - name: debug
+      run : echo $PATH
     - name: Run tests
       run: sbt test
