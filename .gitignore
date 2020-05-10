@@ -1,2 +1,8 @@
 *.class
 *.log
+
+.metals/
+project/
+rafi-prebuilt-binary/
+target/
+test_run_dir/
