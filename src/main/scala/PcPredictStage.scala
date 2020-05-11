@@ -3,13 +3,13 @@ package rafi
 import chisel3._
 import chisel3.util._
 
-class FetchAddrGenerateStageIF extends Bundle {
+class PcPredictStageIF extends Bundle {
     val pc = Output(UInt(64.W))
 }
 
-class FetchAddrGenerateStage extends Module {
+class PcPredictStage extends Module {
     val io = IO(new Bundle {
-        val next = new FetchAddrGenerateStageIF
+        val next = new PcPredictStageIF
     })
 
     val r_pc = RegInit(UInt(64.W), Config.INITIAL_PC)
