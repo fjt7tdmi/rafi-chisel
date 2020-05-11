@@ -15,13 +15,13 @@ class Core extends Module {
     // FetchUnit
     val fetch_addr_generate_stage = Module(new FetchAddrGenerateStage)
     val fetch_addr_translate_stage = Module(new FetchAddrTranslateStage)
-    val icache_read_stage = Module(new FetchAddrTranslateStage)
-    val insn_traversal_stage = Module(new FetchAddrTranslateStage)
+    val icache_read_stage = Module(new ICacheReadStage)
+    val insn_traversal_stage = Module(new InsnTraversalStage)
 
-    fetch_addr_generate_stage.io.next_pc <> fetch_addr_translate_stage.io.prev_pc
-    fetch_addr_translate_stage.io.next_pc <> icache_read_stage.io.prev_pc
-    icache_read_stage.io.next_pc <> insn_traversal_stage.io.prev_pc
+    fetch_addr_generate_stage.io.next <> fetch_addr_translate_stage.io.prev
+    fetch_addr_translate_stage.io.next <> icache_read_stage.io.prev
+    icache_read_stage.io.next <> insn_traversal_stage.io.prev
 
     // Debug
-    io.pc := fetch_addr_generate_stage.io.next_pc
+    io.pc := fetch_addr_generate_stage.io.next.pc
 }
