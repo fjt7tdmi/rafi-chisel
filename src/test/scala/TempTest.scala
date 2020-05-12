@@ -9,7 +9,7 @@ class TempTest extends ChiselFlatSpec {
     it should "FetchAddrGenerateStage increment PC every cycle" in {
         iotesters.Driver.execute(Array(
             "-tn=Core",
-            "-td=test_run_dir/Core",
+            "-td=work/Core",
             "-tgvo=on", "-tbn=verilator"), () => new Core) {
             core => new PeekPokeTester(core) {
                 reset()

@@ -6,4 +6,4 @@ hex/
 project/
 rafi-prebuilt-binary/
 target/
-test_run_dir/
+work/
