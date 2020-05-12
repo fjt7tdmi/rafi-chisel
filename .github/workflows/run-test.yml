@@ -15,5 +15,7 @@ jobs:
         java-version: 1.8
     - name: checkout prebuilt binary
       run: ./checkout_prebuilt_binary_for_ci.sh ${{ secrets.RAFI_PREBUILT_BINARY_USER }} ${{ secrets.RAFI_PREBUILT_BINARY_ACCESS_TOKEN }}  
+    - name: make hex files
+      run: ./make_hex.sh
     - name: Run tests
       run: (export VERILATOR_ROOT=`pwd`/rafi-prebuilt-binary/verilator/Linux-x86_64 && export PATH=$PATH:$VERILATOR_ROOT/bin && sbt test)

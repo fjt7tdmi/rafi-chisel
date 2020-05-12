@@ -2,6 +2,7 @@
 *.log
 
 .metals/
+hex/
 project/
 rafi-prebuilt-binary/
 target/
