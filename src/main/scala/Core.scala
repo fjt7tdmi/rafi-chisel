@@ -5,6 +5,7 @@ import chisel3.util._
 
 object Config {
     val INITIAL_PC = 0.U
+    val ICACHE_SIZE = 32 * 1024
 }
 
 class Core extends Module {
