@@ -2,6 +2,7 @@ package rafi
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.loadMemoryFromFile
 
 class ICacheReadStageIF extends Bundle {
     val pc = Output(UInt(64.W))
@@ -27,4 +28,6 @@ class ICacheReadStage extends Module {
 
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(w_insn, 0.U)
+
+    loadMemoryFromFile(m_icache, "hex/rv64ui-p-add.hex")
 }
