@@ -11,6 +11,7 @@ object Config {
 class Core extends Module {
     val io = IO(new Bundle {
         val pc = Output(UInt(64.W))
+        val insn = Output(UInt(32.W))
     })
 
     // FetchUnit
@@ -24,5 +25,6 @@ class Core extends Module {
     ir.io.next <> it.io.prev
 
     // Debug
-    io.pc := pp.io.next.pc
+    io.pc := it.io.next.pc
+    io.insn := it.io.next.insn
 }

@@ -15,6 +15,7 @@ class TempTest extends ChiselFlatSpec {
                 reset()
                 expect(core.io.pc, 0.U)
 
+                step(3)
                 for (i <- 0 until 10) {
                     val expected_pc = i * 4
                     expect(core.io.pc, expected_pc)
