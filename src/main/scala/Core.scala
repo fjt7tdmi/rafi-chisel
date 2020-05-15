@@ -32,6 +32,12 @@ class Core extends Module {
     rr.io.next <> ex.io.prev
     ex.io.next <> rw.io.prev
 
+    // Register File
+    val reg_file = Module(new RegFile)
+
+    rr.io.reg_file <> reg_file.io.r
+    rw.io.reg_file <> reg_file.io.w
+
     // Debug
     io.pc := it.io.next.pc
     io.insn := it.io.next.insn
