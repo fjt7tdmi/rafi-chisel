@@ -26,6 +26,6 @@ class RegReadStage extends Module {
     io.next.src2 := RegNext(io.prev.rs2, 0.U)
     io.next.reg_write_enable := RegNext(io.prev.reg_write_enable, 0.U)
 
-    io.reg_file.rs1 := io.prev.rs1    
+    io.reg_file.rs1 := io.prev.rs1
     io.reg_file.rs2 := io.prev.rs2
 }
