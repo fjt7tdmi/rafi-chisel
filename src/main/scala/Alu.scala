@@ -56,7 +56,7 @@ class Alu extends Module {
             io.result := src1 - src2
         }
         is (Alu.CMD_SLL) {
-            io.result := src1 << src2
+            io.result := src1 << src2(5, 0)
         }
         is (Alu.CMD_SLT) {
             when (src1.asSInt() < src2.asSInt()) {
@@ -72,10 +72,10 @@ class Alu extends Module {
             io.result := src1 ^ src2
         }
         is (Alu.CMD_SRL) {
-            io.result := src1 >> src2
+            io.result := src1 >> src2(5, 0)
         }
         is (Alu.CMD_SRA) {
-            io.result := (src1.asSInt() >> src2).asUInt()
+            io.result := (src1.asSInt() >> src2(5, 0)).asUInt()
         }
         is (Alu.CMD_OR) {
             io.result := src1 | src2
