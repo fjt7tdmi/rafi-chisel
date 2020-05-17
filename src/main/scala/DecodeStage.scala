@@ -5,7 +5,17 @@ import chisel3.util._
 import chisel3.experimental.ChiselEnum
 import scala.annotation.switch
 
+object ImmType extends ChiselEnum {
+    val zero = Value(0.U)
+    val u = Value(1.U)
+    val j = Value(2.U)
+    val i = Value(3.U)
+    val b = Value(4.U)
+    val s = Value(5.U)
+}
+
 class DecodeStageIF extends Bundle {
+    val valid = Output(Bool())
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
     val execute_unit = Output(UInt(1.W))
@@ -21,26 +31,24 @@ class DecodeStageIF extends Bundle {
     val imm = Output(UInt(64.W))
 }
 
-object ImmType extends ChiselEnum {
-    val zero = Value(0.U)
-    val u = Value(1.U)
-    val j = Value(2.U)
-    val i = Value(3.U)
-    val b = Value(4.U)
-    val s = Value(5.U)
-}
-
 class DecodeStage extends Module {
     val io = IO(new Bundle {
+        val ctrl = Flipped(new PipelineControllerIF.ID)
         val prev = Flipped(new InsnTraversalStageIF)
         val next = new DecodeStageIF
     })
 
-    // Decoder
+    val w_valid = Wire(Bool())
     val w_insn = Wire(UInt(32.W))
     
+    w_valid := io.prev.valid
     w_insn := io.prev.insn
 
+    when (io.ctrl.flush) {
+        w_valid := 0.U
+    }
+
+    // Decoder
     val w_opcode = Wire(UInt(7.W))
 
     w_opcode := w_insn(6, 0)
@@ -161,8 +169,9 @@ class DecodeStage extends Module {
         (w_imm_type === ImmType.s) -> w_imm_s))
 
     // Pipeline register
+    io.next.valid := RegNext(w_valid, 0.U)
     io.next.pc := RegNext(io.prev.pc, 0.U)
-    io.next.insn := RegNext(io.prev.insn, 0.U)
+    io.next.insn := RegNext(w_insn, 0.U)
     io.next.execute_unit := RegNext(w_execute_unit, 0.U)
     io.next.reg_write_enable := RegNext(w_reg_write_enable, 0.U)
     io.next.rd := RegNext(w_rd, 0.U)

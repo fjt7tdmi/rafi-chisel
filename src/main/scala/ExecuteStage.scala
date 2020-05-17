@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class ExecuteStageIF extends Bundle {
+    val valid = Output(Bool())
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
     val rd = Output(UInt(5.W))
@@ -20,9 +21,18 @@ object ExecuteStage {
 
 class ExecuteStage extends Module {
     val io = IO(new Bundle {
+        val ctrl = Flipped(new PipelineControllerIF.EX)
         val prev = Flipped(new RegReadStageIF)
         val next = new ExecuteStageIF
     })
+
+    val w_valid = Wire(Bool())
+
+    w_valid := io.prev.valid
+
+    when (io.ctrl.flush) {
+        w_valid := 0.U
+    }
 
     val m_alu = Module(new Alu)
 
@@ -57,6 +67,7 @@ class ExecuteStage extends Module {
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.target))
 
     // Pipeline register
+    io.next.valid := RegNext(w_valid, 0.U)
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(io.prev.insn, 0.U)
     io.next.rd := RegNext(io.prev.rd, 0.U)

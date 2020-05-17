@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class RegReadStageIF extends Bundle {
+    val valid = Output(Bool())
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
     val execute_unit = Output(UInt(1.W))
@@ -21,16 +22,26 @@ class RegReadStageIF extends Bundle {
 
 class RegReadStage extends Module {
     val io = IO(new Bundle {
+        val ctrl = Flipped(new PipelineControllerIF.RR)
         val prev = Flipped(new DecodeStageIF)
         val next = new RegReadStageIF
         val reg_file = Flipped(new RegFileReadIF)
     })
 
+    val w_valid = Wire(Bool())
+
+    w_valid := io.prev.valid
+
+    when (io.ctrl.flush) {
+        w_valid := 0.U
+    }
+    
     // Read register file
     io.reg_file.rs1 := io.prev.rs1
     io.reg_file.rs2 := io.prev.rs2
 
     // Pipeline register
+    io.next.valid := RegNext(w_valid, 0.U)
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(io.prev.insn, 0.U)
     io.next.execute_unit := RegNext(io.prev.execute_unit, 0.U)

@@ -32,6 +32,18 @@ class Core extends Module {
     rr.io.next <> ex.io.prev
     ex.io.next <> rw.io.prev
 
+    // Pipeline Controller
+    val ctrl = Module(new PipelineController)
+
+    pp.io.ctrl <> ctrl.io.pp
+    pt.io.ctrl <> ctrl.io.pt
+    ir.io.ctrl <> ctrl.io.ir
+    it.io.ctrl <> ctrl.io.it
+    id.io.ctrl <> ctrl.io.id
+    rr.io.ctrl <> ctrl.io.rr
+    ex.io.ctrl <> ctrl.io.ex
+    rw.io.ctrl <> ctrl.io.rw
+
     // Register File
     val reg_file = Module(new RegFile)
 
