@@ -8,6 +8,7 @@ import scala.annotation.switch
 class DecodeStageIF extends Bundle {
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
+    val execute_unit = Output(UInt(1.W))
     val reg_write_enable = Output(Bool())
     val rd = Output(UInt(5.W))
     val rs1 = Output(UInt(5.W))
@@ -15,14 +16,18 @@ class DecodeStageIF extends Bundle {
     val alu_cmd = Output(UInt(4.W))
     val alu_src1_type = Output(UInt(2.W))
     val alu_src2_type = Output(UInt(2.W))
+    val branch_cmd = Output(UInt(3.W))
+    val branch_always = Output(Bool())
     val imm = Output(UInt(64.W))
 }
 
 object ImmType extends ChiselEnum {
     val zero = Value(0.U)
     val u = Value(1.U)
-    val i = Value(2.U)
-    val s = Value(3.U)
+    val j = Value(2.U)
+    val i = Value(3.U)
+    val b = Value(4.U)
+    val s = Value(5.U)
 }
 
 class DecodeStage extends Module {
@@ -43,26 +48,35 @@ class DecodeStage extends Module {
     val w_rd = Wire(UInt(5.W))
     val w_rs1 = Wire(UInt(5.W))
     val w_rs2 = Wire(UInt(5.W))
+    val w_funct3 = Wire(UInt(3.W))
 
     w_rd := w_insn(11, 7)
     w_rs1 := w_insn(19, 15)
     w_rs2 := w_insn(24, 20)
+    w_funct3 := w_insn(14, 12)
 
+    val w_execute_unit = Wire(UInt(1.W))
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
     val w_alu_src1_type = Wire(UInt(2.W))
     val w_alu_src2_type = Wire(UInt(2.W))
+    val w_branch_cmd = Wire(UInt(3.W))
+    val w_branch_always = Wire(Bool())
     val w_imm_type = Wire(ImmType())
 
+    w_execute_unit := ExecuteStage.UNIT_ALU
     w_reg_write_enable := 0.U
     w_alu_cmd := Alu.CMD_ADD
     w_alu_src1_type := Alu.SRC1_TYPE_ZERO
     w_alu_src2_type := Alu.SRC2_TYPE_ZERO
+    w_branch_cmd := BranchUnit.CMD_BEQ
+    w_branch_always := 0.U
     w_imm_type := ImmType.zero
 
     switch (w_opcode) {
         is ("b0110111".U) {
             // lui
+            w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
             w_alu_src1_type := Alu.SRC1_TYPE_ZERO
@@ -71,13 +85,37 @@ class DecodeStage extends Module {
         }
         is ("b0010111".U) {
             // auipc
+            w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
             w_alu_src1_type := Alu.SRC1_TYPE_PC
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
             w_imm_type := ImmType.u
         }
+        is ("b1101111".U) {
+            // jal
+            w_execute_unit := ExecuteStage.UNIT_BRANCH
+            w_reg_write_enable := 1.U
+            w_branch_always := 1.U
+            w_imm_type := ImmType.j
+        }
+        is ("b1100111".U) {
+            when (w_funct3 === 0.U) {
+                // jalr
+                w_execute_unit := ExecuteStage.UNIT_BRANCH
+                w_reg_write_enable := 1.U
+                w_branch_always := 1.U
+                w_imm_type := ImmType.i
+            }
+        }
+        is ("b1100011".U) {
+            // beq, bne, blt, bge, bltu, bgeu
+            w_execute_unit := ExecuteStage.UNIT_BRANCH
+            w_branch_cmd := w_funct3
+            w_imm_type := ImmType.b
+        }
         is ("b0010011".U) {
+            w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Cat(0.U(1.W), w_insn(14, 12))
             w_alu_src1_type := Alu.SRC1_TYPE_REG
@@ -92,6 +130,7 @@ class DecodeStage extends Module {
         }
         is ("b0110011".U) {
             // add, sub, sll, slt, sltu, xor, srl, sra, or, and
+            w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Cat(w_insn(30), w_insn(14, 12))
             w_alu_src1_type := Alu.SRC1_TYPE_REG
@@ -101,23 +140,30 @@ class DecodeStage extends Module {
     }
 
     val w_imm_u = Wire(UInt(64.W))
+    val w_imm_j = Wire(UInt(64.W))
     val w_imm_i = Wire(UInt(64.W))
+    val w_imm_b = Wire(UInt(64.W))
     val w_imm_s = Wire(UInt(64.W))
 
     w_imm_u := Cat(Fill(32, w_insn(31,12)), w_insn(31, 12), 0.U(12.W))
+    w_imm_j := Cat(Fill(43, w_insn(31)), w_insn(31), w_insn(19, 12), w_insn(20), w_insn(30, 21), 0.U(1.W))
     w_imm_i := Cat(Fill(52, w_insn(31)), w_insn(31, 20))
+    w_imm_b := Cat(Fill(53, w_insn(31)), w_insn(31), w_insn(7), w_insn(30, 25), w_insn(11, 8), 0.U(1.W))
     w_imm_s := Cat(Fill(59, 0.U), w_insn(24, 20))
 
     val w_imm = Wire(UInt(64.W))
 
     w_imm := MuxCase(0.U, Seq(
         (w_imm_type === ImmType.u) -> w_imm_u,
+        (w_imm_type === ImmType.j) -> w_imm_j,
         (w_imm_type === ImmType.i) -> w_imm_i,
+        (w_imm_type === ImmType.b) -> w_imm_b,
         (w_imm_type === ImmType.s) -> w_imm_s))
 
     // Pipeline register
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(io.prev.insn, 0.U)
+    io.next.execute_unit := RegNext(w_execute_unit, 0.U)
     io.next.reg_write_enable := RegNext(w_reg_write_enable, 0.U)
     io.next.rd := RegNext(w_rd, 0.U)
     io.next.rs1 := RegNext(w_rs1, 0.U)
@@ -125,5 +171,7 @@ class DecodeStage extends Module {
     io.next.alu_cmd := RegNext(w_alu_cmd, 0.U)
     io.next.alu_src1_type := RegNext(w_alu_src1_type, 0.U)
     io.next.alu_src2_type := RegNext(w_alu_src2_type, 0.U)
+    io.next.branch_cmd := RegNext(w_branch_cmd, 0.U)
+    io.next.branch_always := RegNext(w_branch_always, 0.U)
     io.next.imm := RegNext(w_imm, 0.U)
 }
