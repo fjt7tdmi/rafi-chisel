@@ -9,6 +9,8 @@ class RegReadStageIF extends Bundle {
     val insn = Output(UInt(32.W))
     val execute_unit = Output(UInt(1.W))
     val rd = Output(UInt(5.W))
+    val rs1 = Output(UInt(5.W))
+    val rs2 = Output(UInt(5.W))
     val reg_write_enable = Output(Bool())
     val alu_cmd = Output(UInt(4.W))
     val alu_src1_type = Output(UInt(2.W))
@@ -30,12 +32,8 @@ class RegReadStage extends Module {
 
     val w_valid = Wire(Bool())
 
-    w_valid := io.prev.valid
+    w_valid := Mux(io.ctrl.flush, 0.U, io.prev.valid)
 
-    when (io.ctrl.flush) {
-        w_valid := 0.U
-    }
-    
     // Read register file
     io.reg_file.rs1 := io.prev.rs1
     io.reg_file.rs2 := io.prev.rs2
@@ -46,6 +44,8 @@ class RegReadStage extends Module {
     io.next.insn := RegNext(io.prev.insn, 0.U)
     io.next.execute_unit := RegNext(io.prev.execute_unit, 0.U)
     io.next.rd := RegNext(io.prev.rd, 0.U)
+    io.next.rs1 := RegNext(io.prev.rs1, 0.U)
+    io.next.rs2 := RegNext(io.prev.rs2, 0.U)
     io.next.reg_write_enable := RegNext(io.prev.reg_write_enable, 0.U)
     io.next.alu_cmd := RegNext(io.prev.alu_cmd, 0.U)
     io.next.alu_src1_type := RegNext(io.prev.alu_src1_type, 0.U)

@@ -18,7 +18,7 @@ class BypassLogic extends Module {
         val rs2_hit = Output(Bool())
     })
 
-    val r_valids = Seq.fill(DEPTH)(RegInit(Bool()))
+    val r_valids = Seq.fill(DEPTH)(RegInit(0.U(1.W)))
     val r_rds = Seq.fill(DEPTH)(RegInit(0.U(5.W)))
     val r_values = Seq.fill(DEPTH)(RegInit(0.U(64.W)))
 
@@ -37,7 +37,7 @@ class BypassLogic extends Module {
     io.rs1_hit := 0.U
     io.rs1_value := 0.U
     for (i <- (0 until DEPTH).reverse) {
-        when (r_valids(i) && r_rds(i) === io.rs1) {
+        when (r_valids(i) === 1.U && r_rds(i) === io.rs1) {
             io.rs1_hit := 1.U
             io.rs1_value := r_values(i)
         }
@@ -46,7 +46,7 @@ class BypassLogic extends Module {
     io.rs2_hit := 0.U
     io.rs2_value := 0.U
     for (i <- (0 until DEPTH).reverse) {
-        when (r_valids(i) && r_rds(i) === io.rs2) {
+        when (r_valids(i) === 1.U && r_rds(i) === io.rs2) {
             io.rs2_hit := 1.U
             io.rs2_value := r_values(i)
         }

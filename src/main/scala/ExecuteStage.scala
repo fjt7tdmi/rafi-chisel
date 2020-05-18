@@ -28,12 +28,24 @@ class ExecuteStage extends Module {
 
     val w_valid = Wire(Bool())
 
-    w_valid := io.prev.valid
+    w_valid := Mux(io.ctrl.flush, 0.U, io.prev.valid)
 
-    when (io.ctrl.flush) {
-        w_valid := 0.U
-    }
+    // Bypass
+    val m_bypass = Module(new BypassLogic)
 
+    m_bypass.io.flush := io.ctrl.flush
+    m_bypass.io.valid := w_valid
+    m_bypass.io.rd := io.prev.rd
+    m_bypass.io.rs1 := io.prev.rs1
+    m_bypass.io.rs2 := io.prev.rs2
+
+    val w_rs1_value = Wire(UInt(64.W))
+    val w_rs2_value = Wire(UInt(64.W))
+
+    w_rs1_value := Mux(m_bypass.io.rs1_hit, m_bypass.io.rs1_value, io.prev.rs1_value)
+    w_rs2_value := Mux(m_bypass.io.rs2_hit, m_bypass.io.rs2_value, io.prev.rs2_value)
+
+    // ALU
     val m_alu = Module(new Alu)
 
     m_alu.io.cmd := io.prev.alu_cmd
@@ -41,19 +53,20 @@ class ExecuteStage extends Module {
     m_alu.io.src2_type := io.prev.alu_src2_type
     m_alu.io.pc := io.prev.pc
     m_alu.io.imm := io.prev.imm
-    m_alu.io.rs1_value := io.prev.rs1_value
-    m_alu.io.rs2_value := io.prev.rs2_value
+    m_alu.io.rs1_value := w_rs1_value
+    m_alu.io.rs2_value := w_rs2_value
 
+    // Branch Unit
     val m_branch = Module(new BranchUnit)
 
     m_branch.io.cmd := io.prev.branch_cmd
     m_branch.io.always := io.prev.branch_always
     m_branch.io.pc := io.prev.pc
     m_branch.io.imm := io.prev.imm
-    m_branch.io.rs1_value := io.prev.rs1_value
-    m_branch.io.rs2_value := io.prev.rs2_value
+    m_branch.io.rs1_value := w_rs1_value
+    m_branch.io.rs2_value := w_rs2_value
 
-    // Mux
+    // Result Mux
     val reg_write_value = Wire(UInt(64.W))
     val branch_taken = Wire(Bool())
     val branch_target = Wire(UInt(64.W))
@@ -65,6 +78,8 @@ class ExecuteStage extends Module {
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.taken))
     branch_target := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.target))
+
+    m_bypass.io.rd_value := reg_write_value
 
     // Pipeline register
     io.next.valid := RegNext(w_valid, 0.U)
