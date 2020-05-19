@@ -5,8 +5,9 @@ import chisel3.util._
 import scala.annotation.switch
 
 object  MemUnit {
-    val CMD_LOAD  = 0.U(1.W)
-    val CMD_STORE = 1.U(1.W)
+    val CMD_NONE  = 0.U(2.W)
+    val CMD_LOAD  = 1.U(2.W)
+    val CMD_STORE = 2.U(2.W)
 
     val ACCESS_SIZE_BYTE = 0.U(2.W)
     val ACCESS_SIZE_HALF_WORD = 1.U(2.W)
@@ -17,7 +18,7 @@ object  MemUnit {
 class MemUnit extends Module {
     val io = IO(new Bundle {
         val valid = Input(Bool())
-        val cmd = Input(UInt(1.W))
+        val cmd = Input(UInt(2.W))
         val is_signed = Input(Bool())
         val access_size = Input(UInt(2.W))
         val imm = Input(UInt(64.W))
@@ -59,7 +60,7 @@ class MemUnit extends Module {
     // Write value
     val w_write_value = Wire(Vec(LINE_SIZE, UInt(8.W)))
 
-    w_write_value := io.rs2_value << Cat(w_addr(2, 0), 0.U(3.W))
+    w_write_value := (io.rs2_value << Cat(w_addr(2, 0), 0.U(3.W))).asTypeOf(Vec(LINE_SIZE, UInt(8.W)))
 
     // DCache (now, DCache is just a RAM)
     val m_dcache = Mem(Config.DCACHE_SIZE / LINE_SIZE, Vec(LINE_SIZE, UInt(8.W)))
@@ -72,12 +73,30 @@ class MemUnit extends Module {
     val w_read_value = Wire(Vec(LINE_SIZE, UInt(8.W)))
     val w_read_value_masked = Wire(Vec(LINE_SIZE, UInt(8.W)))
     val w_read_value_shifted = Wire(UInt(64.W))
+    val w_read_value_extended = Wire(UInt(64.W))
 
     w_read_value := m_dcache.read(w_index)
+
     for (i <- 0 until LINE_SIZE) {
-        w_read_value_masked := Mux(w_mask(i), w_read_value(i), 0.U)
+        w_read_value_masked(i) := Mux(w_mask(i), w_read_value(i), 0.U)
     }
+
     w_read_value_shifted := Cat(w_read_value_masked) >> w_addr(2, 0)
+
+    w_read_value_extended := w_read_value_shifted
+    when (io.is_signed) {
+        switch (io.access_size) {
+            is (MemUnit.ACCESS_SIZE_BYTE) {
+                w_read_value_extended := Cat(Fill(56, w_read_value_shifted(7)), w_read_value_shifted(7, 0))
+            }
+            is (MemUnit.ACCESS_SIZE_HALF_WORD) {
+                w_read_value_extended := Cat(Fill(48, w_read_value_shifted(15)), w_read_value_shifted(15, 0))
+            }
+            is (MemUnit.ACCESS_SIZE_WORD) {
+                w_read_value_extended := Cat(Fill(43, w_read_value_shifted(31)), w_read_value_shifted(31, 0))
+            }
+        }
+    }
 
     // Result
     io.result := w_read_value_shifted

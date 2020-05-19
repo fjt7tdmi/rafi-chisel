@@ -15,8 +15,9 @@ class ExecuteStageIF extends Bundle {
 }
 
 object ExecuteStage {
-    val UNIT_ALU    = 0.U(1.W)
-    val UNIT_BRANCH = 1.U(1.W)
+    val UNIT_ALU    = 0.U(2.W)
+    val UNIT_BRANCH = 1.U(2.W)
+    val UNIT_MEM    = 2.U(2.W)
 }
 
 class ExecuteStage extends Module {
@@ -66,6 +67,17 @@ class ExecuteStage extends Module {
     m_branch.io.rs1_value := w_rs1_value
     m_branch.io.rs2_value := w_rs2_value
 
+    // Mem Unit
+    val m_mem = Module(new MemUnit)
+
+    m_mem.io.valid := w_valid
+    m_mem.io.cmd := io.prev.mem_cmd
+    m_mem.io.is_signed := io.prev.mem_is_signed
+    m_mem.io.access_size := io.prev.mem_access_size
+    m_mem.io.imm := io.prev.imm
+    m_mem.io.rs1_value := w_rs1_value
+    m_mem.io.rs2_value := w_rs2_value
+
     // Result Mux
     val reg_write_value = Wire(UInt(64.W))
     val branch_taken = Wire(Bool())
@@ -73,7 +85,8 @@ class ExecuteStage extends Module {
 
     reg_write_value := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_ALU) -> m_alu.io.result,
-        (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.rd_value))
+        (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.rd_value,
+        (io.prev.execute_unit === ExecuteStage.UNIT_MEM) -> m_mem.io.result))
     branch_taken := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.taken))
     branch_target := MuxCase(0.U, Seq(
