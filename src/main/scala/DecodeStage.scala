@@ -56,16 +56,19 @@ class DecodeStage extends Module {
 
     w_opcode := w_insn(6, 0)
 
-    val w_rd = Wire(UInt(5.W))
-    val w_rs1 = Wire(UInt(5.W))
+    val w_funct7 = Wire(UInt(7.W))
     val w_rs2 = Wire(UInt(5.W))
+    val w_rs1 = Wire(UInt(5.W))
     val w_funct3 = Wire(UInt(3.W))
+    val w_rd = Wire(UInt(5.W))
 
-    w_rd := w_insn(11, 7)
-    w_rs1 := w_insn(19, 15)
+    w_funct7 := w_insn(31, 25)
     w_rs2 := w_insn(24, 20)
+    w_rs1 := w_insn(19, 15)
     w_funct3 := w_insn(14, 12)
+    w_rd := w_insn(11, 7)
 
+    val w_unknown = Wire(Bool())
     val w_execute_unit = Wire(UInt(2.W))
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
@@ -78,6 +81,7 @@ class DecodeStage extends Module {
     val w_mem_access_size = Wire(UInt(2.W))
     val w_imm_type = Wire(ImmType())
 
+    w_unknown := 1.U
     w_execute_unit := ExecuteStage.UNIT_ALU
     w_reg_write_enable := 0.U
     w_alu_cmd := Alu.CMD_ADD
@@ -93,6 +97,7 @@ class DecodeStage extends Module {
     switch (w_opcode) {
         is ("b0110111".U) {
             // lui
+            w_unknown := 0.U
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
@@ -102,6 +107,7 @@ class DecodeStage extends Module {
         }
         is ("b0010111".U) {
             // auipc
+            w_unknown := 0.U
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
@@ -111,14 +117,16 @@ class DecodeStage extends Module {
         }
         is ("b1101111".U) {
             // jal
+            w_unknown := 0.U
             w_execute_unit := ExecuteStage.UNIT_BRANCH
             w_reg_write_enable := 1.U
             w_branch_always := 1.U
             w_imm_type := ImmType.j
         }
         is ("b1100111".U) {
+            // jalr
             when (w_funct3 === 0.U) {
-                // jalr
+                w_unknown := 0.U
                 w_execute_unit := ExecuteStage.UNIT_BRANCH
                 w_reg_write_enable := 1.U
                 w_branch_always := 1.U
@@ -127,20 +135,29 @@ class DecodeStage extends Module {
         }
         is ("b1100011".U) {
             // beq, bne, blt, bge, bltu, bgeu
-            w_execute_unit := ExecuteStage.UNIT_BRANCH
-            w_branch_cmd := w_funct3
-            w_imm_type := ImmType.b
+            when (w_funct3(2, 1) != "b01".U) {
+                w_unknown := 0.U
+                w_execute_unit := ExecuteStage.UNIT_BRANCH
+                w_branch_cmd := w_funct3
+                w_imm_type := ImmType.b
+            }
         }
         is ("b0000011".U) {
-            // lb, lh, lw, lbu, lhu
-            w_mem_cmd := MemUnit.CMD_LOAD
-            w_mem_is_signed := !w_funct3(2)
-            w_mem_access_size := w_funct3(1, 0)
+            // lb, lh, lw, ld, lbu, lhu, lwu
+            when (w_funct3 != "b111".U) {
+                w_unknown := (w_funct3 === "b111".U)
+                w_mem_cmd := MemUnit.CMD_LOAD
+                w_mem_is_signed := !w_funct3(2)
+                w_mem_access_size := w_funct3(1, 0)
+            }
         }
         is ("b0100011".U) {
-            // sb, sh ,sw
-            w_mem_cmd := MemUnit.CMD_STORE
-            w_mem_access_size := w_funct3(1, 0)
+            // sb, sh, sw, sd
+            when (w_funct3(2) === 0.U) {
+                w_unknown := 0.U
+                w_mem_cmd := MemUnit.CMD_STORE
+                w_mem_access_size := w_funct3(1, 0)
+            }
         }
         is ("b0010011".U) {
             w_execute_unit := ExecuteStage.UNIT_ALU
@@ -148,16 +165,28 @@ class DecodeStage extends Module {
             w_alu_cmd := Cat(0.U(1.W), w_insn(14, 12))
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
-            when (w_insn(13, 12) === "b01".U) {
-                // slli, srli, srai
-                w_imm_type := ImmType.s
+
+            when (w_insn(13, 11) === "b001".U) {
+                // slli
+                when (w_funct7 != "b0000000".U) {
+                    w_unknown := 0.U
+                    w_imm_type := ImmType.s
+                } 
+            } .elsewhen (w_insn(13, 11) === "b101".U) {
+                // srli, srai
+                when (w_funct7 != "b0000000".U || w_funct7 != "b0100000".U) {
+                    w_unknown := 0.U
+                    w_imm_type := ImmType.s
+                } 
             } .otherwise {
                 // addi, slti, sltiu, xori, ori, andi
+                w_unknown := 0.U
                 w_imm_type := ImmType.i
             }
         }
         is ("b0110011".U) {
             // add, sub, sll, slt, sltu, xor, srl, sra, or, and
+            w_unknown := 0.U
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Cat(w_insn(30), w_insn(14, 12))
