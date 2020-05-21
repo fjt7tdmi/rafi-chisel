@@ -194,6 +194,19 @@ class DecodeStage extends Module {
             w_alu_src2_type := Alu.SRC2_TYPE_REG
             w_imm_type := ImmType.zero
         }
+        is ("b0001111".U) {
+            when (w_funct3 === "b000".U) {
+                when (w_insn(31, 28) === 0.U && w_rs1 === 0.U && w_rs2 === 0.U) {
+                    // fence
+                    w_unknown := 0.U
+                }
+            } .elsewhen (w_funct3 === "b001".U) {
+                when (w_insn(31, 20) === 0.U && w_rs1 === 0.U && w_rs2 === 0.U) {
+                    // fence.i
+                    w_unknown := 0.U
+                }
+            }
+        }
     }
 
     val w_imm_u = Wire(UInt(64.W))
