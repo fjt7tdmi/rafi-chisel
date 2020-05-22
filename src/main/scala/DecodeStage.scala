@@ -209,13 +209,13 @@ class DecodeStage extends Module {
         }
         is ("b0001111".U) {
             when (w_funct3 === "b000".U) {
+                // fence
                 when (w_insn(31, 28) === 0.U && w_rs1 === 0.U && w_rs2 === 0.U) {
-                    // fence
                     w_unknown := 0.U
                 }
             } .elsewhen (w_funct3 === "b001".U) {
+                // fence.i
                 when (w_insn(31, 20) === 0.U && w_rs1 === 0.U && w_rs2 === 0.U) {
-                    // fence.i
                     w_unknown := 0.U
                 }
             }
@@ -223,44 +223,53 @@ class DecodeStage extends Module {
         is ("b1110011".U) {
             switch (w_funct3) {
                 is ("b000".U) {
+                    // ecall
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00000".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
                         w_trap_cmd := TrapUnit.CMD_ECALL
                     }
+                    // ebreak
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00001".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
                         w_trap_cmd := TrapUnit.CMD_EBREAK
                     }
+                    // mret
                     when (w_funct7 === "b0011000".U && w_rs2 === "b00010".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
                         w_trap_cmd := TrapUnit.CMD_MRET
                     }
                 }
+                // csrrw
                 is ("b001".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 0.U
                 }
+                // csrrs
                 is ("b010".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 0.U
                 }
+                // csrrc
                 is ("b011".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 0.U
                 }
+                // csrrwi
                 is ("b101".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 1.U
                 }
+                // csrrsi
                 is ("b110".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 1.U
                 }
+                // csrrci
                 is ("b111".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_SET
