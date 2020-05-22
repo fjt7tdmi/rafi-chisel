@@ -15,10 +15,11 @@ class ExecuteStageIF extends Bundle {
 }
 
 object ExecuteStage {
-    val UNIT_ALU    = 0.U(2.W)
-    val UNIT_BRANCH = 1.U(2.W)
-    val UNIT_CSR    = 2.U(2.W)
-    val UNIT_MEM    = 3.U(2.W)
+    val UNIT_ALU    = 0.U(3.W)
+    val UNIT_BRANCH = 1.U(3.W)
+    val UNIT_CSR    = 2.U(3.W)
+    val UNIT_TRAP   = 3.U(3.W)
+    val UNIT_MEM    = 4.U(3.W)
 }
 
 class ExecuteStage extends Module {

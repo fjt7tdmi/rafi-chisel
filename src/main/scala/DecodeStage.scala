@@ -31,6 +31,7 @@ class DecodeStageIF extends Bundle {
     val csr_cmd = Output(UInt(2.W))
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
+    val trap_cmd = Output(UInt(2.W))
     val mem_cmd = Output(UInt(2.W))
     val mem_is_signed = Output(Bool())
     val mem_access_size = Output(UInt(2.W))
@@ -82,6 +83,7 @@ class DecodeStage extends Module {
     val w_csr_cmd = Wire(UInt(2.W))
     val w_csr_addr = Wire(UInt(12.W))
     val w_csr_use_imm = Wire(Bool())
+    val w_trap_cmd = Wire(UInt(1.W))
     val w_mem_cmd = Wire(UInt(2.W))
     val w_mem_is_signed = Wire(Bool())
     val w_mem_access_size = Wire(UInt(2.W))
@@ -98,12 +100,14 @@ class DecodeStage extends Module {
     w_csr_cmd := Csr.CMD_NONE
     w_csr_addr := w_insn(31, 20)
     w_csr_use_imm := 0.U
+    w_trap_cmd := TrapUnit.CMD_NONE
     w_mem_cmd := MemUnit.CMD_NONE
     w_mem_is_signed := 0.U
     w_mem_access_size := MemUnit.ACCESS_SIZE_BYTE
     w_imm_type := ImmType.zero
 
     switch (w_opcode) {
+        // RV64I
         is ("b0110111".U) {
             // lui
             w_unknown := 0.U
@@ -218,6 +222,20 @@ class DecodeStage extends Module {
         }
         is ("b1110011".U) {
             switch (w_funct3) {
+                is ("b000".U) {
+                    when (w_funct7 === "b0000000".U && w_rs2 === "b00000".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
+                        w_unknown := 0.U
+                        w_trap_cmd := TrapUnit.CMD_ECALL
+                    }
+                    when (w_funct7 === "b0000000".U && w_rs2 === "b00001".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
+                        w_unknown := 0.U
+                        w_trap_cmd := TrapUnit.CMD_EBREAK
+                    }
+                    when (w_funct7 === "b0011000".U && w_rs2 === "b00010".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
+                        w_unknown := 0.U
+                        w_trap_cmd := TrapUnit.CMD_MRET
+                    }
+                }
                 is ("b001".U) {
                     w_unknown := 0.U
                     w_csr_cmd := Csr.CMD_WRITE
@@ -290,6 +308,7 @@ class DecodeStage extends Module {
     io.next.csr_cmd := RegNext(w_csr_cmd, 0.U)
     io.next.csr_addr := RegNext(w_csr_addr, 0.U)
     io.next.csr_use_imm := RegNext(w_csr_use_imm, 0.U)
+    io.next.trap_cmd := RegNext(w_trap_cmd, 0.U)
     io.next.mem_cmd := RegNext(w_mem_cmd, 0.U)
     io.next.mem_is_signed := RegNext(w_mem_is_signed, 0.U)
     io.next.mem_access_size := RegNext(w_mem_access_size, 0.U)
