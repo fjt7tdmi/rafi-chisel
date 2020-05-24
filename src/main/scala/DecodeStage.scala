@@ -214,7 +214,7 @@ class DecodeStage extends Module {
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
 
-            when (w_funct3 === "b000".U && w_funct7 === "b0000000".U) {
+            when (w_funct3 === "b000".U) {
                 // addiw
                 w_unknown := 0.U
                 w_alu_cmd := Alu.CMD_ADD
