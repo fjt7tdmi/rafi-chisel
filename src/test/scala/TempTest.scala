@@ -15,11 +15,11 @@ class TempTest extends ChiselFlatSpec {
                 reset()
                 expect(core.io.pc, 0.U)
 
-                step(3)
-                for (i <- 0 until 5) {
-                    val expected_pc = i * 4
-                    expect(core.io.pc, expected_pc)
-                    step(1)                    
+                for (i <- 0 until 100) {
+                    step(1)
+                    if (core.io.valid == 1.U) {
+                        printf("%08x %08x\n", core.io.pc, core.io.host_io_value)
+                    }
                 }
             }
         } should be (true)

@@ -25,6 +25,9 @@ class MemUnit extends Module {
         val rs1_value = Input(UInt(64.W))
         val rs2_value = Input(UInt(64.W))
         val result = Output(UInt(64.W))
+
+        // Debug
+        val host_io_value = Output(UInt(64.W))
     })
 
     val LINE_SIZE = 8
@@ -100,4 +103,7 @@ class MemUnit extends Module {
 
     // Result
     io.result := w_read_value_shifted
+
+    // Debug
+    io.host_io_value := Mux(io.valid && io.cmd === MemUnit.CMD_STORE && w_addr === Config.HOST_IO_ADDR, w_write_value.asTypeOf(UInt(64.W)), 0.U)
 }

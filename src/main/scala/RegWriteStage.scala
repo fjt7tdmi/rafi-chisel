@@ -9,6 +9,11 @@ class RegWriteStage extends Module {
         val prev = Flipped(new ExecuteStageIF)
         val csr = Flipped(new CsrTrapIF)
         val reg_file = Flipped(new RegFileWriteIF)
+
+        // Debug
+        val valid = Output(Bool())
+        val pc = Output(UInt(64.W))
+        val host_io_value = Output(UInt(64.W))
     })
 
     // Trap processing
@@ -69,5 +74,10 @@ class RegWriteStage extends Module {
     io.reg_file.write_enable := io.prev.reg_write_enable
     when (!io.prev.valid) {
         io.reg_file.write_enable := 0.U
-    }    
+    }
+
+    // Debug
+    io.valid := io.prev.valid
+    io.pc := io.prev.pc
+    io.host_io_value := io.prev.host_io_value
 }

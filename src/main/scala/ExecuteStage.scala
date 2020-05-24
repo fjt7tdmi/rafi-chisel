@@ -16,6 +16,9 @@ class ExecuteStageIF extends Bundle {
     val reg_write_value = Output(UInt(64.W))
     val branch_taken = Output(Bool())
     val branch_target = Output(UInt(64.W))
+
+    // Debug
+    val host_io_value = Output(UInt(64.W))
 }
 
 object ExecuteStage {
@@ -121,4 +124,5 @@ class ExecuteStage extends Module {
     io.next.reg_write_value := RegNext(reg_write_value, 0.U)
     io.next.branch_taken := RegNext(branch_taken, 0.U)
     io.next.branch_target := RegNext(branch_target, 0.U)
+    io.next.host_io_value := RegNext(m_mem.io.host_io_value, 0.U)
 }

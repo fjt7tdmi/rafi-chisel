@@ -5,14 +5,16 @@ import chisel3.util._
 
 object Config {
     val INITIAL_PC = 0.U
+    val HOST_IO_ADDR = "h80001000".U
     val ICACHE_SIZE = 32 * 1024
     val DCACHE_SIZE = 32 * 1024
 }
 
 class Core extends Module {
     val io = IO(new Bundle {
+        val valid = Output(Bool())
         val pc = Output(UInt(64.W))
-        val insn = Output(UInt(32.W))
+        val host_io_value = Output(UInt(64.W))
     })
 
     // Pipeline
@@ -58,6 +60,7 @@ class Core extends Module {
     rw.io.csr <> csr.io.trap
 
     // Debug
-    io.pc := it.io.next.pc
-    io.insn := it.io.next.insn
+    io.valid := rw.io.valid
+    io.pc := rw.io.pc
+    io.host_io_value := rw.io.host_io_value
 }
