@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 object Config {
-    val INITIAL_PC = 0.U
+    val INITIAL_PC   = "h80000000".U
     val HOST_IO_ADDR = "h80001000".U
     val ICACHE_SIZE = 32 * 1024
     val DCACHE_SIZE = 32 * 1024
