@@ -137,7 +137,6 @@ class DecodeStage extends Module {
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
-            w_alu_is_word := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_PC
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
             w_imm_type := ImmType.u
@@ -353,7 +352,7 @@ class DecodeStage extends Module {
     val w_imm_b = Wire(UInt(64.W))
     val w_imm_s = Wire(UInt(64.W))
 
-    w_imm_u := Cat(Fill(32, w_insn(31,12)), w_insn(31, 12), 0.U(12.W))
+    w_imm_u := Cat(Fill(32, w_insn(31)), w_insn(31, 12), 0.U(12.W))
     w_imm_j := Cat(Fill(43, w_insn(31)), w_insn(31), w_insn(19, 12), w_insn(20), w_insn(30, 21), 0.U(1.W))
     w_imm_i := Cat(Fill(52, w_insn(31)), w_insn(31, 20))
     w_imm_b := Cat(Fill(53, w_insn(31)), w_insn(31), w_insn(7), w_insn(30, 25), w_insn(11, 8), 0.U(1.W))
