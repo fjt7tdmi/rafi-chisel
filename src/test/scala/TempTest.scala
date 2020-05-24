@@ -27,7 +27,7 @@ class TempTest extends ChiselFlatSpec {
                     val host_io_value = peek(core.io.host_io_value).toLong
 
                     if (valid == 1) {
-                        println(f"$pc%08x $host_io_value%08x")                        
+                        println(f"0x$pc%016x $host_io_value%d")                        
                     }
 
                     end = valid == 1 && host_io_value != 0
