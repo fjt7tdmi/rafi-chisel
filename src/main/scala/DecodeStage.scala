@@ -170,7 +170,7 @@ class DecodeStage extends Module {
         is ("b0000011".U) {
             // lb, lh, lw, ld, lbu, lhu, lwu
             when (w_funct3 != "b111".U) {
-                w_unknown := (w_funct3 === "b111".U)
+                w_unknown := 0.U
                 w_mem_cmd := MemUnit.CMD_LOAD
                 w_mem_is_signed := !w_funct3(2)
                 w_mem_access_size := w_funct3(1, 0)
@@ -187,7 +187,6 @@ class DecodeStage extends Module {
         is ("b0010011".U) {
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
-            w_alu_cmd := Cat(w_funct7(5), w_funct3)
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
 
@@ -197,10 +196,12 @@ class DecodeStage extends Module {
                 (w_funct3 === "b101".U && w_funct7 === "b0100000".U)) {
                 // slli, srli, srai
                 w_unknown := 0.U
+                w_alu_cmd := Cat(w_funct7(5), w_funct3)
                 w_imm_type := ImmType.s
             } .otherwise {
                 // addi, slti, sltiu, xori, ori, andi
                 w_unknown := 0.U
+                w_alu_cmd := Cat(0.U(1.W), w_funct3)
                 w_imm_type := ImmType.i
             }
         }
