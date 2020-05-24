@@ -18,13 +18,14 @@ class BypassLogic extends Module {
         val rs2_hit = Output(Bool())
     })
 
+    // Registers
     val r_valids = Seq.fill(DEPTH)(RegInit(0.U(1.W)))
     val r_rds = Seq.fill(DEPTH)(RegInit(0.U(5.W)))
     val r_values = Seq.fill(DEPTH)(RegInit(0.U(64.W)))
 
     for (i <- 0 until DEPTH) {
         if (i == 0) {
-            r_valids(i) := Mux(io.flush, 0.U, io.valid)
+            r_valids(i) := Mux(io.flush, 0.U, (io.valid && io.rd != 0.U))
             r_rds(i) := io.rd
             r_values(i) := io.rd_value
         } else {
@@ -34,6 +35,7 @@ class BypassLogic extends Module {
         }
     }
 
+    // CAM
     io.rs1_hit := 0.U
     io.rs1_value := 0.U
     for (i <- (0 until DEPTH).reverse) {

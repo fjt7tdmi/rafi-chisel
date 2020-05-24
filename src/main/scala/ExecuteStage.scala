@@ -45,7 +45,7 @@ class ExecuteStage extends Module {
     val m_bypass = Module(new BypassLogic)
 
     m_bypass.io.flush := io.ctrl.flush
-    m_bypass.io.valid := w_valid
+    m_bypass.io.valid := w_valid && io.prev.reg_write_enable
     m_bypass.io.rd := io.prev.rd
     m_bypass.io.rs1 := io.prev.rs1
     m_bypass.io.rs2 := io.prev.rs2
