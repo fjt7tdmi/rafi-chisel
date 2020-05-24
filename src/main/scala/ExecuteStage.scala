@@ -74,7 +74,7 @@ class ExecuteStage extends Module {
 
     m_csr.io.valid := w_valid
     m_csr.io.cmd := io.prev.csr_cmd
-    m_csr.io.csr_addr := io.prev.csr_addr
+    m_csr.io.addr := io.prev.csr_addr
     m_csr.io.operand := Mux(io.prev.csr_use_imm, io.prev.imm, w_rs1_value)
 
     // Mem Unit
@@ -96,7 +96,7 @@ class ExecuteStage extends Module {
     reg_write_value := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_ALU) -> m_alu.io.result,
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.rd_value,
-        (io.prev.execute_unit === ExecuteStage.UNIT_CSR) -> m_csr.io.csr_value,
+        (io.prev.execute_unit === ExecuteStage.UNIT_CSR) -> m_csr.io.read_value,
         (io.prev.execute_unit === ExecuteStage.UNIT_MEM) -> m_mem.io.result))
     branch_taken := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.taken))

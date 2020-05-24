@@ -24,14 +24,17 @@ object  Csr {
     val ADDR_MIP        = "h344".U(12.W)
 }
 
+class CsrIF extends Bundle {
+    val valid = Input(Bool())
+    val cmd = Input(UInt(2.W))
+    val addr = Input(UInt(12.W))
+    val operand = Input(UInt(64.W))
+    val read_value = Output(UInt(64.W))
+    val mtvec = Output(UInt(64.W))
+}
+
 class Csr extends Module {
-    val io = IO(new Bundle {
-        val valid = Input(Bool())
-        val cmd = Input(UInt(2.W))
-        val csr_addr = Input(UInt(12.W))
-        val operand = Input(UInt(64.W))
-        val csr_value = Output(UInt(64.W))
-    })
+    val io = IO(new CsrIF)
 
     // Register Definitions
     val r_mstatus    = RegInit(0.U(64.W))
@@ -51,18 +54,18 @@ class Csr extends Module {
     val w_read_value = Wire(UInt(64.W))
 
     w_read_value := MuxCase(0.U, Seq(
-        (io.csr_addr === Csr.ADDR_MSTATUS) -> r_mstatus,
-        (io.csr_addr === Csr.ADDR_MISA) -> r_misa,
-        (io.csr_addr === Csr.ADDR_MEDELEG) -> r_medeleg,
-        (io.csr_addr === Csr.ADDR_MIDELEG) -> r_mideleg,
-        (io.csr_addr === Csr.ADDR_MIE) -> r_mie,
-        (io.csr_addr === Csr.ADDR_MTVEC) -> r_mtvec,
-        (io.csr_addr === Csr.ADDR_MCOUNTEREN) -> r_mcounteren,
-        (io.csr_addr === Csr.ADDR_MSCRATCH) -> r_mscratch,
-        (io.csr_addr === Csr.ADDR_MEPC) -> r_mepc,
-        (io.csr_addr === Csr.ADDR_MCAUSE) -> r_mcause,
-        (io.csr_addr === Csr.ADDR_MTVAL) -> r_mtval,
-        (io.csr_addr === Csr.ADDR_MIP) -> r_mip))
+        (io.addr === Csr.ADDR_MSTATUS) -> r_mstatus,
+        (io.addr === Csr.ADDR_MISA) -> r_misa,
+        (io.addr === Csr.ADDR_MEDELEG) -> r_medeleg,
+        (io.addr === Csr.ADDR_MIDELEG) -> r_mideleg,
+        (io.addr === Csr.ADDR_MIE) -> r_mie,
+        (io.addr === Csr.ADDR_MTVEC) -> r_mtvec,
+        (io.addr === Csr.ADDR_MCOUNTEREN) -> r_mcounteren,
+        (io.addr === Csr.ADDR_MSCRATCH) -> r_mscratch,
+        (io.addr === Csr.ADDR_MEPC) -> r_mepc,
+        (io.addr === Csr.ADDR_MCAUSE) -> r_mcause,
+        (io.addr === Csr.ADDR_MTVAL) -> r_mtval,
+        (io.addr === Csr.ADDR_MIP) -> r_mip))
 
     // Calculation
     val w_write_value = Wire(UInt(64.W))
@@ -95,18 +98,18 @@ class Csr extends Module {
     val w_mtval_we      = Wire(Bool())
     val w_mip_we        = Wire(Bool())
 
-    w_mstatus_we    := w_we && io.csr_addr === Csr.ADDR_MSTATUS
-    w_misa_we       := w_we && io.csr_addr === Csr.ADDR_MISA
-    w_medeleg_we    := w_we && io.csr_addr === Csr.ADDR_MEDELEG
-    w_mideleg_we    := w_we && io.csr_addr === Csr.ADDR_MIDELEG
-    w_mie_we        := w_we && io.csr_addr === Csr.ADDR_MIE
-    w_mtvec_we      := w_we && io.csr_addr === Csr.ADDR_MTVEC
-    w_mcounteren_we := w_we && io.csr_addr === Csr.ADDR_MCOUNTEREN
-    w_mscratch_we   := w_we && io.csr_addr === Csr.ADDR_MSCRATCH
-    w_mepc_we       := w_we && io.csr_addr === Csr.ADDR_MEPC
-    w_mcause_we     := w_we && io.csr_addr === Csr.ADDR_MCAUSE
-    w_mtval_we      := w_we && io.csr_addr === Csr.ADDR_MTVAL
-    w_mip_we        := w_we && io.csr_addr === Csr.ADDR_MIP
+    w_mstatus_we    := w_we && io.addr === Csr.ADDR_MSTATUS
+    w_misa_we       := w_we && io.addr === Csr.ADDR_MISA
+    w_medeleg_we    := w_we && io.addr === Csr.ADDR_MEDELEG
+    w_mideleg_we    := w_we && io.addr === Csr.ADDR_MIDELEG
+    w_mie_we        := w_we && io.addr === Csr.ADDR_MIE
+    w_mtvec_we      := w_we && io.addr === Csr.ADDR_MTVEC
+    w_mcounteren_we := w_we && io.addr === Csr.ADDR_MCOUNTEREN
+    w_mscratch_we   := w_we && io.addr === Csr.ADDR_MSCRATCH
+    w_mepc_we       := w_we && io.addr === Csr.ADDR_MEPC
+    w_mcause_we     := w_we && io.addr === Csr.ADDR_MCAUSE
+    w_mtval_we      := w_we && io.addr === Csr.ADDR_MTVAL
+    w_mip_we        := w_we && io.addr === Csr.ADDR_MIP
 
     r_mstatus    := Mux(w_mstatus_we, w_write_value, r_mstatus)
     r_misa       := Mux(w_misa_we, w_write_value, r_misa)
@@ -122,5 +125,6 @@ class Csr extends Module {
     r_mip        := Mux(w_mip_we, w_write_value, r_mip)
 
     // IO
-    io.csr_value := w_read_value
+    io.read_value := w_read_value
+    io.mtvec := r_mtvec
 }
