@@ -44,8 +44,8 @@ class Alu extends Module {
         (io.src1_type === Alu.SRC1_TYPE_REG) -> io.rs1_value,
         (io.src1_type === Alu.SRC1_TYPE_PC) -> io.pc))
     src2 := MuxCase(0.U, Seq(
-        (io.src1_type === Alu.SRC2_TYPE_REG) -> io.rs2_value,
-        (io.src1_type === Alu.SRC2_TYPE_IMM) -> io.imm))
+        (io.src2_type === Alu.SRC2_TYPE_REG) -> io.rs2_value,
+        (io.src2_type === Alu.SRC2_TYPE_IMM) -> io.imm))
 
     io.result := 0.U
     switch (io.cmd) {
