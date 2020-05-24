@@ -53,45 +53,45 @@ class Alu extends Module {
     result_64 := 0.U
     switch (io.cmd) {
         is (Alu.CMD_ADD) {
-            io.result := src1_64 + src2_64
+            result_64 := src1_64 + src2_64
         }
         is (Alu.CMD_SUB) {
-            io.result := src1_64 - src2_64
+            result_64 := src1_64 - src2_64
         }
         is (Alu.CMD_SLL) {
-            io.result := src1_64 << src2_64(5, 0)
+            result_64 := src1_64 << src2_64(5, 0)
         }
         is (Alu.CMD_SLT) {
             when (src1_64.asSInt() < src2_64.asSInt()) {
-                io.result := 1.U
+                result_64 := 1.U
             }
         }
         is (Alu.CMD_SLTU) {
             when (src1_64 < src2_64) {
-                io.result := 1.U
+                result_64 := 1.U
             }
         }
         is (Alu.CMD_XOR) {
-            io.result := src1_64 ^ src2_64
+            result_64 := src1_64 ^ src2_64
         }
         is (Alu.CMD_SRL) {
-            io.result := src1_64 >> src2_64(5, 0)
+            result_64 := src1_64 >> src2_64(5, 0)
         }
         is (Alu.CMD_SRA) {
-            io.result := (src1_64.asSInt() >> src2_64(5, 0)).asUInt()
+            result_64 := (src1_64.asSInt() >> src2_64(5, 0)).asUInt()
         }
         is (Alu.CMD_OR) {
-            io.result := src1_64 | src2_64
+            result_64 := src1_64 | src2_64
         }
         is (Alu.CMD_AND) {
-            io.result := src1_64 & src2_64
+            result_64 := src1_64 & src2_64
         }
     }
 
     // 32 bit calculation
-    val src1_32 = Wire(UInt(64.W))
-    val src2_32 = Wire(UInt(64.W))
-    val result_32 = Wire(UInt(64.W))
+    val src1_32 = Wire(UInt(32.W))
+    val src2_32 = Wire(UInt(32.W))
+    val result_32 = Wire(UInt(32.W))
 
     src1_32 := src1_64(31, 0)
     src2_32 := src2_64(31, 0)
