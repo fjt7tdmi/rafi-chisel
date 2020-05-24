@@ -255,36 +255,42 @@ class DecodeStage extends Module {
                 // csrrw
                 is ("b001".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 0.U
                 }
                 // csrrs
                 is ("b010".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 0.U
                 }
                 // csrrc
                 is ("b011".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 0.U
                 }
                 // csrrwi
                 is ("b101".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 1.U
                 }
                 // csrrsi
                 is ("b110".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 1.U
                 }
                 // csrrci
                 is ("b111".U) {
                     w_unknown := 0.U
+                    w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 1.U
                 }
