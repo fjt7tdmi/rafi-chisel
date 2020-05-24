@@ -60,6 +60,7 @@ class ExecuteStage extends Module {
     val m_alu = Module(new Alu)
 
     m_alu.io.cmd := io.prev.alu_cmd
+    m_alu.io.is_word := io.prev.alu_is_word
     m_alu.io.src1_type := io.prev.alu_src1_type
     m_alu.io.src2_type := io.prev.alu_src2_type
     m_alu.io.pc := io.prev.pc

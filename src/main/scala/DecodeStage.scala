@@ -28,6 +28,7 @@ class DecodeStageIF extends Bundle {
     val rs1 = Output(UInt(5.W))
     val rs2 = Output(UInt(5.W))
     val alu_cmd = Output(UInt(4.W))
+    val alu_is_word = Output(Bool())
     val alu_src1_type = Output(UInt(2.W))
     val alu_src2_type = Output(UInt(2.W))
     val branch_cmd = Output(UInt(3.W))
@@ -79,6 +80,7 @@ class DecodeStage extends Module {
     val w_execute_unit = Wire(UInt(2.W))
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
+    val w_alu_is_word = Wire(Bool())
     val w_alu_src1_type = Wire(UInt(2.W))
     val w_alu_src2_type = Wire(UInt(2.W))
     val w_branch_cmd = Wire(UInt(3.W))
@@ -99,6 +101,7 @@ class DecodeStage extends Module {
     w_execute_unit := ExecuteStage.UNIT_ALU
     w_reg_write_enable := 0.U
     w_alu_cmd := Alu.CMD_ADD
+    w_alu_is_word := 0.U
     w_alu_src1_type := Alu.SRC1_TYPE_ZERO
     w_alu_src2_type := Alu.SRC2_TYPE_ZERO
     w_branch_cmd := BranchUnit.CMD_BEQ
@@ -184,26 +187,43 @@ class DecodeStage extends Module {
         is ("b0010011".U) {
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
-            w_alu_cmd := Cat(0.U(1.W), w_insn(14, 12))
+            w_alu_cmd := Cat(w_funct7(5), w_funct3)
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
 
-            when (w_insn(13, 11) === "b001".U) {
-                // slli
-                when (w_funct7 != "b0000000".U) {
-                    w_unknown := 0.U
-                    w_imm_type := ImmType.s
-                } 
-            } .elsewhen (w_insn(13, 11) === "b101".U) {
-                // srli, srai
-                when (w_funct7 != "b0000000".U || w_funct7 != "b0100000".U) {
-                    w_unknown := 0.U
-                    w_imm_type := ImmType.s
-                } 
+            when (
+                (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0100000".U)) {
+                // slli, srli, srai
+                w_unknown := 0.U
+                w_imm_type := ImmType.s
             } .otherwise {
                 // addi, slti, sltiu, xori, ori, andi
                 w_unknown := 0.U
                 w_imm_type := ImmType.i
+            }
+        }
+        is ("b0011011".U) {
+            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_reg_write_enable := 1.U
+            w_alu_is_word := 1.U
+            w_alu_src1_type := Alu.SRC1_TYPE_REG
+            w_alu_src2_type := Alu.SRC2_TYPE_IMM
+
+            when (w_funct3 === "b000".U && w_funct7 === "b0000000".U) {
+                // addiw
+                w_unknown := 0.U
+                w_alu_cmd := Alu.CMD_ADD
+                w_imm_type := ImmType.i
+            } .elsewhen (
+                (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0100000".U)) {
+                // slliw, srliw, sraiw
+                w_unknown := 0.U
+                w_alu_cmd := Cat(w_funct7(5), w_funct3)
+                w_imm_type := ImmType.s
             }
         }
         is ("b0110011".U) {
@@ -211,10 +231,27 @@ class DecodeStage extends Module {
             w_unknown := 0.U
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
-            w_alu_cmd := Cat(w_insn(30), w_insn(14, 12))
+            w_alu_cmd := Cat(w_funct7(5), w_funct3)
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_REG
-            w_imm_type := ImmType.zero
+        }
+        is ("b0111011".U) {
+            // addw, subw, sllw, srlw, sraw
+            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_reg_write_enable := 1.U
+            w_alu_is_word := 1.U
+            w_alu_cmd := Cat(w_funct7(5), w_funct3)
+            w_alu_src1_type := Alu.SRC1_TYPE_REG
+            w_alu_src2_type := Alu.SRC2_TYPE_REG
+
+            when (
+                (w_funct3 === "b000".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b000".U && w_funct7 === "b0100000".U) ||
+                (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0000000".U) ||
+                (w_funct3 === "b101".U && w_funct7 === "b0100000".U)) {
+                w_unknown := 0.U
+            }
         }
         is ("b0001111".U) {
             when (w_funct3 === "b000".U) {
@@ -333,6 +370,7 @@ class DecodeStage extends Module {
     io.next.rs1 := RegNext(w_rs1, 0.U)
     io.next.rs2 := RegNext(w_rs2, 0.U)
     io.next.alu_cmd := RegNext(w_alu_cmd, 0.U)
+    io.next.alu_is_word := RegNext(w_alu_is_word, 0.U)
     io.next.alu_src1_type := RegNext(w_alu_src1_type, 0.U)
     io.next.alu_src2_type := RegNext(w_alu_src2_type, 0.U)
     io.next.branch_cmd := RegNext(w_branch_cmd, 0.U)

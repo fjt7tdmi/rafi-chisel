@@ -28,6 +28,7 @@ object  Alu {
 class Alu extends Module {
     val io = IO(new Bundle {
         val cmd = Input(UInt(4.W))
+        val is_word = Input(Bool())
         val src1_type = Input(UInt(2.W))
         val src2_type = Input(UInt(2.W))
         val pc = Input(UInt(64.W))
@@ -37,51 +38,102 @@ class Alu extends Module {
         val result = Output(UInt(64.W))
     })
 
-    val src1 = Wire(UInt(64.W))
-    val src2 = Wire(UInt(64.W))
+    // 64 bit calculation
+    val src1_64 = Wire(UInt(64.W))
+    val src2_64 = Wire(UInt(64.W))
+    val result_64 = Wire(UInt(64.W))
 
-    src1 := MuxCase(0.U, Seq(
+    src1_64 := MuxCase(0.U, Seq(
         (io.src1_type === Alu.SRC1_TYPE_REG) -> io.rs1_value,
         (io.src1_type === Alu.SRC1_TYPE_PC) -> io.pc))
-    src2 := MuxCase(0.U, Seq(
+    src2_64 := MuxCase(0.U, Seq(
         (io.src2_type === Alu.SRC2_TYPE_REG) -> io.rs2_value,
         (io.src2_type === Alu.SRC2_TYPE_IMM) -> io.imm))
 
-    io.result := 0.U
+    result_64 := 0.U
     switch (io.cmd) {
         is (Alu.CMD_ADD) {
-            io.result := src1 + src2
+            io.result := src1_64 + src2_64
         }
         is (Alu.CMD_SUB) {
-            io.result := src1 - src2
+            io.result := src1_64 - src2_64
         }
         is (Alu.CMD_SLL) {
-            io.result := src1 << src2(5, 0)
+            io.result := src1_64 << src2_64(5, 0)
         }
         is (Alu.CMD_SLT) {
-            when (src1.asSInt() < src2.asSInt()) {
+            when (src1_64.asSInt() < src2_64.asSInt()) {
                 io.result := 1.U
             }
         }
         is (Alu.CMD_SLTU) {
-            when (src1 < src2) {
+            when (src1_64 < src2_64) {
                 io.result := 1.U
             }
         }
         is (Alu.CMD_XOR) {
-            io.result := src1 ^ src2
+            io.result := src1_64 ^ src2_64
         }
         is (Alu.CMD_SRL) {
-            io.result := src1 >> src2(5, 0)
+            io.result := src1_64 >> src2_64(5, 0)
         }
         is (Alu.CMD_SRA) {
-            io.result := (src1.asSInt() >> src2(5, 0)).asUInt()
+            io.result := (src1_64.asSInt() >> src2_64(5, 0)).asUInt()
         }
         is (Alu.CMD_OR) {
-            io.result := src1 | src2
+            io.result := src1_64 | src2_64
         }
         is (Alu.CMD_AND) {
-            io.result := src1 & src2
+            io.result := src1_64 & src2_64
         }
     }
+
+    // 32 bit calculation
+    val src1_32 = Wire(UInt(64.W))
+    val src2_32 = Wire(UInt(64.W))
+    val result_32 = Wire(UInt(64.W))
+
+    src1_32 := src1_64(31, 0)
+    src2_32 := src2_64(31, 0)
+
+    result_32 := 0.U
+    switch (io.cmd) {
+        is (Alu.CMD_ADD) {
+            result_32 := src1_32 + src2_32
+        }
+        is (Alu.CMD_SUB) {
+            result_32 := src1_32 - src2_32
+        }
+        is (Alu.CMD_SLL) {
+            result_32 := src1_32 << src2_32(4, 0)
+        }
+        is (Alu.CMD_SLT) {
+            when (src1_32.asSInt() < src2_32.asSInt()) {
+                result_32 := 1.U
+            }
+        }
+        is (Alu.CMD_SLTU) {
+            when (src1_32 < src2_32) {
+                result_32 := 1.U
+            }
+        }
+        is (Alu.CMD_XOR) {
+            result_32 := src1_32 ^ src2_32
+        }
+        is (Alu.CMD_SRL) {
+            result_32 := src1_32 >> src2_32(4, 0)
+        }
+        is (Alu.CMD_SRA) {
+            result_32 := (src1_32.asSInt() >> src2_32(4, 0)).asUInt()
+        }
+        is (Alu.CMD_OR) {
+            result_32 := src1_32 | src2_32
+        }
+        is (Alu.CMD_AND) {
+            result_32 := src1_32 & src2_32
+        }
+    }
+
+    // Result
+    io.result := Mux(io.is_word, Cat(Fill(32, result_32(31)), result_32), result_64)
 }
