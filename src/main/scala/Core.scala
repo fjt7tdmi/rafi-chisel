@@ -51,6 +51,12 @@ class Core extends Module {
     rr.io.reg_file <> reg_file.io.r
     rw.io.reg_file <> reg_file.io.w
 
+    // CSR
+    val csr = Module(new Csr)
+
+    ex.io.csr <> csr.io.ex
+    rw.io.csr <> csr.io.trap
+
     // Debug
     io.pc := it.io.next.pc
     io.insn := it.io.next.insn

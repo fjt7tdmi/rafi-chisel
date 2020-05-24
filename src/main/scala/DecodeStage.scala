@@ -18,6 +18,10 @@ class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
+    val trap_enter = Output(Bool())
+    val trap_return = Output(Bool())
+    val trap_cause = Output(UInt(4.W))
+    val trap_value = Output(UInt(64.W))
     val execute_unit = Output(UInt(2.W))
     val reg_write_enable = Output(Bool())
     val rd = Output(UInt(5.W))
@@ -31,7 +35,6 @@ class DecodeStageIF extends Bundle {
     val csr_cmd = Output(UInt(2.W))
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
-    val trap_cmd = Output(UInt(2.W))
     val mem_cmd = Output(UInt(2.W))
     val mem_is_signed = Output(Bool())
     val mem_access_size = Output(UInt(2.W))
@@ -83,11 +86,14 @@ class DecodeStage extends Module {
     val w_csr_cmd = Wire(UInt(2.W))
     val w_csr_addr = Wire(UInt(12.W))
     val w_csr_use_imm = Wire(Bool())
-    val w_trap_cmd = Wire(UInt(1.W))
     val w_mem_cmd = Wire(UInt(2.W))
     val w_mem_is_signed = Wire(Bool())
     val w_mem_access_size = Wire(UInt(2.W))
     val w_imm_type = Wire(ImmType())
+    val w_trap_enter = Wire(Bool())
+    val w_trap_return = Wire(Bool())
+    val w_trap_cause = Wire(UInt(4.W))
+    val w_trap_value = Wire(UInt(64.W))
 
     w_unknown := 1.U
     w_execute_unit := ExecuteStage.UNIT_ALU
@@ -100,11 +106,14 @@ class DecodeStage extends Module {
     w_csr_cmd := Csr.CMD_NONE
     w_csr_addr := w_insn(31, 20)
     w_csr_use_imm := 0.U
-    w_trap_cmd := TrapUnit.CMD_NONE
     w_mem_cmd := MemUnit.CMD_NONE
     w_mem_is_signed := 0.U
     w_mem_access_size := MemUnit.ACCESS_SIZE_BYTE
     w_imm_type := ImmType.zero
+    w_trap_enter := 0.U
+    w_trap_return := 0.U
+    w_trap_cause := 0.U
+    w_trap_value := 0.U
 
     switch (w_opcode) {
         // RV64I
@@ -226,17 +235,21 @@ class DecodeStage extends Module {
                     // ecall
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00000".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_trap_cmd := TrapUnit.CMD_ECALL
+                        w_trap_enter := 1.U
+                        w_trap_cause := 11.U // ECALL_FROM_M
+                        w_trap_value := io.prev.pc
                     }
                     // ebreak
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00001".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_trap_cmd := TrapUnit.CMD_EBREAK
+                        w_trap_enter := 1.U
+                        w_trap_cause := 3.U // BREAKPOINT
+                        w_trap_value := io.prev.pc
                     }
                     // mret
                     when (w_funct7 === "b0011000".U && w_rs2 === "b00010".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_trap_cmd := TrapUnit.CMD_MRET
+                        w_trap_return := 1.U
                     }
                 }
                 // csrrw
@@ -304,6 +317,10 @@ class DecodeStage extends Module {
     io.next.valid := RegNext(w_valid, 0.U)
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(w_insn, 0.U)
+    io.next.trap_enter := RegNext(w_trap_enter, 0.U)
+    io.next.trap_return := RegNext(w_trap_return, 0.U)
+    io.next.trap_cause := RegNext(w_trap_cause, 0.U)
+    io.next.trap_value := RegNext(w_trap_value, 0.U)
     io.next.execute_unit := RegNext(w_execute_unit, 0.U)
     io.next.reg_write_enable := RegNext(w_reg_write_enable, 0.U)
     io.next.rd := RegNext(w_rd, 0.U)
@@ -317,7 +334,6 @@ class DecodeStage extends Module {
     io.next.csr_cmd := RegNext(w_csr_cmd, 0.U)
     io.next.csr_addr := RegNext(w_csr_addr, 0.U)
     io.next.csr_use_imm := RegNext(w_csr_use_imm, 0.U)
-    io.next.trap_cmd := RegNext(w_trap_cmd, 0.U)
     io.next.mem_cmd := RegNext(w_mem_cmd, 0.U)
     io.next.mem_is_signed := RegNext(w_mem_is_signed, 0.U)
     io.next.mem_access_size := RegNext(w_mem_access_size, 0.U)

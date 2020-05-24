@@ -7,6 +7,10 @@ class ExecuteStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
     val insn = Output(UInt(32.W))
+    val trap_enter = Output(Bool())
+    val trap_return = Output(Bool())
+    val trap_cause = Output(UInt(4.W))
+    val trap_value = Output(UInt(64.W))
     val rd = Output(UInt(5.W))
     val reg_write_enable = Output(Bool())
     val reg_write_value = Output(UInt(64.W))
@@ -27,6 +31,7 @@ class ExecuteStage extends Module {
         val ctrl = Flipped(new PipelineControllerIF.EX)
         val prev = Flipped(new RegReadStageIF)
         val next = new ExecuteStageIF
+        val csr = Flipped(new CsrExecuteIF)
     })
 
     val w_valid = Wire(Bool())
@@ -69,14 +74,6 @@ class ExecuteStage extends Module {
     m_branch.io.rs1_value := w_rs1_value
     m_branch.io.rs2_value := w_rs2_value
 
-    // CSR
-    val m_csr = Module(new Csr)
-
-    m_csr.io.valid := w_valid
-    m_csr.io.cmd := io.prev.csr_cmd
-    m_csr.io.addr := io.prev.csr_addr
-    m_csr.io.operand := Mux(io.prev.csr_use_imm, io.prev.imm, w_rs1_value)
-
     // Mem Unit
     val m_mem = Module(new MemUnit)
 
@@ -96,7 +93,7 @@ class ExecuteStage extends Module {
     reg_write_value := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_ALU) -> m_alu.io.result,
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.rd_value,
-        (io.prev.execute_unit === ExecuteStage.UNIT_CSR) -> m_csr.io.read_value,
+        (io.prev.execute_unit === ExecuteStage.UNIT_CSR) -> io.csr.read_value,
         (io.prev.execute_unit === ExecuteStage.UNIT_MEM) -> m_mem.io.result))
     branch_taken := MuxCase(0.U, Seq(
         (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.taken))
@@ -105,10 +102,20 @@ class ExecuteStage extends Module {
 
     m_bypass.io.rd_value := reg_write_value
 
+    // CSR
+    io.csr.valid := w_valid
+    io.csr.cmd := io.prev.csr_cmd
+    io.csr.addr := io.prev.csr_addr
+    io.csr.operand := Mux(io.prev.csr_use_imm, io.prev.imm, w_rs1_value)
+
     // Pipeline register
     io.next.valid := RegNext(w_valid, 0.U)
     io.next.pc := RegNext(io.prev.pc, 0.U)
     io.next.insn := RegNext(io.prev.insn, 0.U)
+    io.next.trap_enter := RegNext(io.prev.trap_enter, 0.U)
+    io.next.trap_return := RegNext(io.prev.trap_return, 0.U)
+    io.next.trap_cause := RegNext(io.prev.trap_cause, 0.U)
+    io.next.trap_value := RegNext(io.prev.trap_value, 0.U)
     io.next.rd := RegNext(io.prev.rd, 0.U)
     io.next.reg_write_enable := RegNext(io.prev.reg_write_enable, 0.U)
     io.next.reg_write_value := RegNext(reg_write_value, 0.U)

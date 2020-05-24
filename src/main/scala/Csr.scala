@@ -24,17 +24,33 @@ object  Csr {
     val ADDR_MIP        = "h344".U(12.W)
 }
 
-class CsrIF extends Bundle {
+class CsrExecuteIF extends Bundle {
     val valid = Input(Bool())
     val cmd = Input(UInt(2.W))
     val addr = Input(UInt(12.W))
     val operand = Input(UInt(64.W))
     val read_value = Output(UInt(64.W))
-    val mtvec = Output(UInt(64.W))
+}
+
+class CsrTrapIF extends Bundle {
+    val mstatus_we = Input(Bool())
+    val mstatus_write_value = Input(UInt(64.W))
+    val mcause_we = Input(Bool())
+    val mcause_write_value = Input(UInt(64.W))
+    val mepc_we = Input(Bool())
+    val mepc_write_value = Input(UInt(64.W))
+    val mtval_we = Input(Bool())
+    val mtval_write_value = Input(UInt(64.W))
+    val mstatus_read_value = Output(UInt(64.W))
+    val mtvec_read_value = Output(UInt(64.W))
+    val mepc_read_value = Output(UInt(64.W))
 }
 
 class Csr extends Module {
-    val io = IO(new CsrIF)
+    val io = IO(new Bundle {
+        val ex = new CsrExecuteIF
+        val trap = new CsrTrapIF
+    })
 
     // Register Definitions
     val r_mstatus    = RegInit(0.U(64.W))
@@ -54,36 +70,36 @@ class Csr extends Module {
     val w_read_value = Wire(UInt(64.W))
 
     w_read_value := MuxCase(0.U, Seq(
-        (io.addr === Csr.ADDR_MSTATUS) -> r_mstatus,
-        (io.addr === Csr.ADDR_MISA) -> r_misa,
-        (io.addr === Csr.ADDR_MEDELEG) -> r_medeleg,
-        (io.addr === Csr.ADDR_MIDELEG) -> r_mideleg,
-        (io.addr === Csr.ADDR_MIE) -> r_mie,
-        (io.addr === Csr.ADDR_MTVEC) -> r_mtvec,
-        (io.addr === Csr.ADDR_MCOUNTEREN) -> r_mcounteren,
-        (io.addr === Csr.ADDR_MSCRATCH) -> r_mscratch,
-        (io.addr === Csr.ADDR_MEPC) -> r_mepc,
-        (io.addr === Csr.ADDR_MCAUSE) -> r_mcause,
-        (io.addr === Csr.ADDR_MTVAL) -> r_mtval,
-        (io.addr === Csr.ADDR_MIP) -> r_mip))
+        (io.ex.addr === Csr.ADDR_MSTATUS) -> r_mstatus,
+        (io.ex.addr === Csr.ADDR_MISA) -> r_misa,
+        (io.ex.addr === Csr.ADDR_MEDELEG) -> r_medeleg,
+        (io.ex.addr === Csr.ADDR_MIDELEG) -> r_mideleg,
+        (io.ex.addr === Csr.ADDR_MIE) -> r_mie,
+        (io.ex.addr === Csr.ADDR_MTVEC) -> r_mtvec,
+        (io.ex.addr === Csr.ADDR_MCOUNTEREN) -> r_mcounteren,
+        (io.ex.addr === Csr.ADDR_MSCRATCH) -> r_mscratch,
+        (io.ex.addr === Csr.ADDR_MEPC) -> r_mepc,
+        (io.ex.addr === Csr.ADDR_MCAUSE) -> r_mcause,
+        (io.ex.addr === Csr.ADDR_MTVAL) -> r_mtval,
+        (io.ex.addr === Csr.ADDR_MIP) -> r_mip))
 
     // Calculation
     val w_write_value = Wire(UInt(64.W))
 
-    w_write_value := io.operand
-    switch (io.cmd) {
+    w_write_value := io.ex.operand
+    switch (io.ex.cmd) {
         is (Csr.CMD_SET) {
-            w_write_value := w_read_value | io.operand
+            w_write_value := w_read_value | io.ex.operand
         }
         is (Csr.CMD_CLEAR) {
-            w_write_value := w_read_value & (~io.operand)
+            w_write_value := w_read_value & (~io.ex.operand)
         }
     }
 
     // Register Write
     val w_we = Wire(Bool())
 
-    w_we := io.valid && (io.cmd != Csr.CMD_NONE)
+    w_we := io.ex.valid && (io.ex.cmd != Csr.CMD_NONE)
 
     val w_mstatus_we    = Wire(Bool())
     val w_misa_we       = Wire(Bool())
@@ -98,20 +114,32 @@ class Csr extends Module {
     val w_mtval_we      = Wire(Bool())
     val w_mip_we        = Wire(Bool())
 
-    w_mstatus_we    := w_we && io.addr === Csr.ADDR_MSTATUS
-    w_misa_we       := w_we && io.addr === Csr.ADDR_MISA
-    w_medeleg_we    := w_we && io.addr === Csr.ADDR_MEDELEG
-    w_mideleg_we    := w_we && io.addr === Csr.ADDR_MIDELEG
-    w_mie_we        := w_we && io.addr === Csr.ADDR_MIE
-    w_mtvec_we      := w_we && io.addr === Csr.ADDR_MTVEC
-    w_mcounteren_we := w_we && io.addr === Csr.ADDR_MCOUNTEREN
-    w_mscratch_we   := w_we && io.addr === Csr.ADDR_MSCRATCH
-    w_mepc_we       := w_we && io.addr === Csr.ADDR_MEPC
-    w_mcause_we     := w_we && io.addr === Csr.ADDR_MCAUSE
-    w_mtval_we      := w_we && io.addr === Csr.ADDR_MTVAL
-    w_mip_we        := w_we && io.addr === Csr.ADDR_MIP
+    w_mstatus_we    := w_we && io.ex.addr === Csr.ADDR_MSTATUS
+    w_misa_we       := w_we && io.ex.addr === Csr.ADDR_MISA
+    w_medeleg_we    := w_we && io.ex.addr === Csr.ADDR_MEDELEG
+    w_mideleg_we    := w_we && io.ex.addr === Csr.ADDR_MIDELEG
+    w_mie_we        := w_we && io.ex.addr === Csr.ADDR_MIE
+    w_mtvec_we      := w_we && io.ex.addr === Csr.ADDR_MTVEC
+    w_mcounteren_we := w_we && io.ex.addr === Csr.ADDR_MCOUNTEREN
+    w_mscratch_we   := w_we && io.ex.addr === Csr.ADDR_MSCRATCH
+    w_mepc_we       := w_we && io.ex.addr === Csr.ADDR_MEPC
+    w_mcause_we     := w_we && io.ex.addr === Csr.ADDR_MCAUSE
+    w_mtval_we      := w_we && io.ex.addr === Csr.ADDR_MTVAL
+    w_mip_we        := w_we && io.ex.addr === Csr.ADDR_MIP
 
-    r_mstatus    := Mux(w_mstatus_we, w_write_value, r_mstatus)
+    r_mstatus := MuxCase(r_mstatus, Seq(
+        io.trap.mstatus_we -> io.trap.mstatus_write_value,
+        w_mstatus_we -> w_write_value))
+    r_mepc := MuxCase(r_mepc, Seq(
+        io.trap.mepc_we -> io.trap.mepc_write_value,
+        w_mepc_we -> w_write_value))
+    r_mcause := MuxCase(r_mcause, Seq(
+        io.trap.mcause_we -> io.trap.mcause_write_value,
+        w_mcause_we -> w_write_value))
+    r_mtval := MuxCase(r_mtval, Seq(
+        io.trap.mtval_we -> io.trap.mtval_write_value,
+        w_mtval_we -> w_write_value))
+
     r_misa       := Mux(w_misa_we, w_write_value, r_misa)
     r_medeleg    := Mux(w_medeleg_we, w_write_value, r_medeleg)
     r_mideleg    := Mux(w_mideleg_we, w_write_value, r_mideleg)
@@ -119,12 +147,11 @@ class Csr extends Module {
     r_mtvec      := Mux(w_mtvec_we, w_write_value, r_mtvec)
     r_mcounteren := Mux(w_mcounteren_we, w_write_value, r_mcounteren)
     r_mscratch   := Mux(w_mscratch_we, w_write_value, r_mscratch)
-    r_mepc       := Mux(w_mepc_we, w_write_value, r_mepc)
-    r_mcause     := Mux(w_mcause_we, w_write_value, r_mcause)
-    r_mtval      := Mux(w_mtval_we, w_write_value, r_mtval)
     r_mip        := Mux(w_mip_we, w_write_value, r_mip)
-
+   
     // IO
-    io.read_value := w_read_value
-    io.mtvec := r_mtvec
+    io.ex.read_value := w_read_value
+    io.trap.mstatus_read_value := r_mstatus
+    io.trap.mtvec_read_value := r_mtvec
+    io.trap.mepc_read_value := r_mepc
 }
