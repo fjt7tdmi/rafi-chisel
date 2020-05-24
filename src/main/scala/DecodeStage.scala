@@ -126,6 +126,7 @@ class DecodeStage extends Module {
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
+            w_alu_is_word := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_ZERO
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
             w_imm_type := ImmType.u
@@ -136,6 +137,7 @@ class DecodeStage extends Module {
             w_execute_unit := ExecuteStage.UNIT_ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
+            w_alu_is_word := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_PC
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
             w_imm_type := ImmType.u
