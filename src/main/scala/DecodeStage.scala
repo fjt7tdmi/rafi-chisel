@@ -273,6 +273,7 @@ class DecodeStage extends Module {
                     // ecall
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00000".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
+                        w_execute_unit := ExecuteStage.UNIT_TRAP
                         w_trap_enter := 1.U
                         w_trap_cause := 11.U // ECALL_FROM_M
                         w_trap_value := io.prev.pc
@@ -280,6 +281,7 @@ class DecodeStage extends Module {
                     // ebreak
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00001".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
+                        w_execute_unit := ExecuteStage.UNIT_TRAP
                         w_trap_enter := 1.U
                         w_trap_cause := 3.U // BREAKPOINT
                         w_trap_value := io.prev.pc
@@ -287,12 +289,14 @@ class DecodeStage extends Module {
                     // mret
                     when (w_funct7 === "b0011000".U && w_rs2 === "b00010".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
+                        w_execute_unit := ExecuteStage.UNIT_TRAP
                         w_trap_return := 1.U
                     }
                 }
                 // csrrw
                 is ("b001".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 0.U
@@ -300,6 +304,7 @@ class DecodeStage extends Module {
                 // csrrs
                 is ("b010".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 0.U
@@ -307,6 +312,7 @@ class DecodeStage extends Module {
                 // csrrc
                 is ("b011".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 0.U
@@ -314,6 +320,7 @@ class DecodeStage extends Module {
                 // csrrwi
                 is ("b101".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 1.U
@@ -321,6 +328,7 @@ class DecodeStage extends Module {
                 // csrrsi
                 is ("b110".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 1.U
@@ -328,6 +336,7 @@ class DecodeStage extends Module {
                 // csrrci
                 is ("b111".U) {
                     w_unknown := 0.U
+                    w_execute_unit := ExecuteStage.UNIT_CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 1.U
