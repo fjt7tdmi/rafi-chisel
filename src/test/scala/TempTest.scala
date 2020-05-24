@@ -18,7 +18,7 @@ class TempTest extends ChiselFlatSpec {
                 var cycle : Int = 0
                 var end : Boolean = false
 
-                while (!end && cycle < 100) {
+                while (!end && cycle < 200) {
                     step(1)
                     cycle += 1
 
