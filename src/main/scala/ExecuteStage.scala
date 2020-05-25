@@ -72,7 +72,8 @@ class ExecuteStage extends Module {
     val m_branch = Module(new BranchUnit)
 
     m_branch.io.cmd := io.prev.branch_cmd
-    m_branch.io.always := io.prev.branch_always
+    m_branch.io.is_always := io.prev.branch_always
+    m_branch.io.is_relative := io.prev.branch_relative
     m_branch.io.pc := io.prev.pc
     m_branch.io.imm := io.prev.imm
     m_branch.io.rs1_value := w_rs1_value

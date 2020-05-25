@@ -16,7 +16,8 @@ object  BranchUnit {
 class BranchUnit extends Module {
     val io = IO(new Bundle {
         val cmd = Input(UInt(3.W))
-        val always = Input(Bool())
+        val is_relative = Input(Bool())
+        val is_always = Input(Bool())
         val pc = Input(UInt(64.W))
         val imm = Input(UInt(64.W))
         val rs1_value = Input(UInt(64.W))
@@ -61,11 +62,13 @@ class BranchUnit extends Module {
             }
         }
     }
-    when (io.always) {
+    when (io.is_always) {
         io.taken := 1.U
     }
 
-    when (io.taken) {
+    when (io.taken && io.is_relative) {
+        io.target := io.rs1_value + io.imm
+    } .elsewhen (io.taken && !io.is_relative) {
         io.target := io.pc + io.imm
     } .otherwise {
         io.target := io.pc + 4.U

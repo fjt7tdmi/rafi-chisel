@@ -33,6 +33,7 @@ class DecodeStageIF extends Bundle {
     val alu_src2_type = Output(UInt(2.W))
     val branch_cmd = Output(UInt(3.W))
     val branch_always = Output(Bool())
+    val branch_relative = Output(Bool())
     val csr_cmd = Output(UInt(2.W))
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
@@ -85,6 +86,7 @@ class DecodeStage extends Module {
     val w_alu_src2_type = Wire(UInt(2.W))
     val w_branch_cmd = Wire(UInt(3.W))
     val w_branch_always = Wire(Bool())
+    val w_branch_relative = Wire(Bool())
     val w_csr_cmd = Wire(UInt(2.W))
     val w_csr_addr = Wire(UInt(12.W))
     val w_csr_use_imm = Wire(Bool())
@@ -106,6 +108,7 @@ class DecodeStage extends Module {
     w_alu_src2_type := Alu.SRC2_TYPE_ZERO
     w_branch_cmd := BranchUnit.CMD_BEQ
     w_branch_always := 0.U
+    w_branch_relative := 0.U
     w_csr_cmd := Csr.CMD_NONE
     w_csr_addr := w_insn(31, 20)
     w_csr_use_imm := 0.U
@@ -156,6 +159,7 @@ class DecodeStage extends Module {
                 w_execute_unit := ExecuteStage.UNIT_BRANCH
                 w_reg_write_enable := 1.U
                 w_branch_always := 1.U
+                w_branch_relative := 1.U
                 w_imm_type := ImmType.i
             }
         }
@@ -386,6 +390,7 @@ class DecodeStage extends Module {
     io.next.alu_src2_type := RegNext(w_alu_src2_type, 0.U)
     io.next.branch_cmd := RegNext(w_branch_cmd, 0.U)
     io.next.branch_always := RegNext(w_branch_always, 0.U)
+    io.next.branch_relative := RegNext(w_branch_relative, 0.U)
     io.next.csr_cmd := RegNext(w_csr_cmd, 0.U)
     io.next.csr_addr := RegNext(w_csr_addr, 0.U)
     io.next.csr_use_imm := RegNext(w_csr_use_imm, 0.U)
