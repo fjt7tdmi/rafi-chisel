@@ -33,7 +33,7 @@ class TempTest extends ChiselFlatSpec {
                     end = valid == 1 && host_io_value != 0
                 }
 
-                //expect(core.io.host_io_value, 1.U)
+                expect(core.io.host_io_value, 1.U)
             }
         } should be (true)
     }
