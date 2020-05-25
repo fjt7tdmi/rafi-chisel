@@ -29,7 +29,7 @@ class RegWriteStage extends Module {
     w_trap_return := io.prev.valid && io.prev.trap_return
 
     w_flush_target := MuxCase(io.prev.branch_target, Seq(
-        w_trap_enter -> (io.csr.mtvec_read_value << 2.U),
+        w_trap_enter -> Cat(io.csr.mtvec_read_value(63, 2), 0.U(2.W)),
         w_trap_return -> io.csr.mepc_read_value))
 
     when (w_trap_enter) {
