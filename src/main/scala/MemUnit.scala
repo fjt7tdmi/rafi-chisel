@@ -2,6 +2,8 @@ package rafi
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.loadMemoryFromFile
+import firrtl.annotations.MemoryLoadFileType
 import scala.annotation.switch
 
 object  MemUnit {
@@ -15,7 +17,7 @@ object  MemUnit {
     val ACCESS_SIZE_DOUBLE_WORD = 3.U(2.W)
 }
 
-class MemUnit extends Module {
+class MemUnit(val dcache_hex_path: String) extends Module {
     val io = IO(new Bundle {
         val valid = Input(Bool())
         val cmd = Input(UInt(2.W))
@@ -67,6 +69,8 @@ class MemUnit extends Module {
 
     // DCache (now, DCache is just a RAM)
     val m_dcache = Mem(Config.DCACHE_SIZE / LINE_SIZE, Vec(LINE_SIZE, UInt(8.W)))
+
+    loadMemoryFromFile(m_dcache, dcache_hex_path, MemoryLoadFileType.Hex)
 
     when (io.valid && io.cmd === MemUnit.CMD_STORE) {
         m_dcache.write(w_index, w_write_value, w_mask.asBools())

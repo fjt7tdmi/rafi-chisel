@@ -10,7 +10,7 @@ abstract class RVTest(val test_name: String, val enable_debug_print: Boolean = f
     it should "Host IO value will be 1" in {
         val args = Array("-tn=Core", s"-td=work/${test_name}", "-tgvo=on", "-tbn=verilator")
 
-        iotesters.Driver.execute(args, () => new Core(s"hex/${test_name}.hex")) {
+        iotesters.Driver.execute(args, () => new Core(s"hex/icache/${test_name}.hex", s"hex/dcache/${test_name}.hex")) {
             core => new PeekPokeTester(core) {
                 reset()
                 

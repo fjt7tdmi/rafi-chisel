@@ -29,7 +29,7 @@ object ExecuteStage {
     val UNIT_MEM    = 4.U(3.W)
 }
 
-class ExecuteStage extends Module {
+class ExecuteStage(val dcache_hex_path: String) extends Module {
     val io = IO(new Bundle {
         val ctrl = Flipped(new PipelineControllerIF.EX)
         val prev = Flipped(new RegReadStageIF)
@@ -80,7 +80,7 @@ class ExecuteStage extends Module {
     m_branch.io.rs2_value := w_rs2_value
 
     // Mem Unit
-    val m_mem = Module(new MemUnit)
+    val m_mem = Module(new MemUnit(dcache_hex_path))
 
     m_mem.io.valid := w_valid
     m_mem.io.cmd := io.prev.mem_cmd
