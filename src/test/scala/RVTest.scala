@@ -17,7 +17,7 @@ abstract class RVTest(val test_name: String, val enable_debug_print: Boolean = f
                 var cycle : Int = 0
                 var end : Boolean = false
 
-                while (!end && cycle < 1000) {
+                while (!end && cycle < 10000) {
                     step(1)
                     cycle += 1
 
