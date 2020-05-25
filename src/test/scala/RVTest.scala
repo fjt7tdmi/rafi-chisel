@@ -4,14 +4,14 @@ import chisel3._
 import chisel3.iotesters._
 import chisel3.util._
 
-class TempTest extends ChiselFlatSpec {    
-    behavior of "FetchAddrGenerateStage"
+class RVTest extends ChiselFlatSpec {    
+    behavior of "Core"
 
-    it should "FetchAddrGenerateStage increment PC every cycle" in {
+    it should "Host IO value will be 1" in {
         iotesters.Driver.execute(Array(
             "-tn=Core",
             "-td=work/Core",
-            "-tgvo=on", "-tbn=verilator"), () => new Core) {
+            "-tgvo=on", "-tbn=verilator"), () => new Core("hex/rv64ui-p-add.hex")) {
             core => new PeekPokeTester(core) {
                 reset()
                 

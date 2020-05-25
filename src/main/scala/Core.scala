@@ -10,7 +10,7 @@ object Config {
     val DCACHE_SIZE = 32 * 1024
 }
 
-class Core extends Module {
+class Core(val hex_path: String) extends Module {
     val io = IO(new Bundle {
         val valid = Output(Bool())
         val pc = Output(UInt(64.W))
@@ -20,7 +20,7 @@ class Core extends Module {
     // Pipeline
     val pp = Module(new PcPredictStage)
     val pt = Module(new PcTranslateStage)
-    val ir = Module(new ICacheReadStage)
+    val ir = Module(new ICacheReadStage(hex_path))
     val it = Module(new InsnTraversalStage)
     val id = Module(new DecodeStage)
     val rr = Module(new RegReadStage)

@@ -11,7 +11,7 @@ class ICacheReadStageIF extends Bundle {
     val insn = Output(UInt(32.W))
 }
 
-class ICacheReadStage extends Module {
+class ICacheReadStage(val hex_path: String) extends Module {
     val io = IO(new Bundle {
         val ctrl = Flipped(new PipelineControllerIF.IR)
         val prev = Flipped(new PcTranslateStageIF)
@@ -31,7 +31,7 @@ class ICacheReadStage extends Module {
     
     val m_icache = Mem(Config.ICACHE_SIZE / 4, UInt(32.W))
 
-    loadMemoryFromFile(m_icache, "hex/rv64ui-p-add.hex", MemoryLoadFileType.Hex)
+    loadMemoryFromFile(m_icache, hex_path, MemoryLoadFileType.Hex)
 
     val w_icache_index = Wire(UInt(INDEX_WIDTH.W))
     val w_insn = Wire(UInt(32.W))
