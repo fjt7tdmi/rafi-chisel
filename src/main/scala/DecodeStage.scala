@@ -11,7 +11,8 @@ object ImmType extends ChiselEnum {
     val j = Value(2.U)
     val i = Value(3.U)
     val b = Value(4.U)
-    val s = Value(5.U)
+    val shift = Value(5.U)
+    val store = Value(6.U)
 }
 
 class DecodeStageIF extends Bundle {
@@ -187,6 +188,7 @@ class DecodeStage extends Module {
                 w_unknown := 0.U
                 w_mem_cmd := MemUnit.CMD_STORE
                 w_mem_access_size := w_funct3(1, 0)
+                w_imm_type := ImmType.store
             }
         }
         is ("b0010011".U) {
@@ -202,7 +204,7 @@ class DecodeStage extends Module {
                 // slli, srli, srai
                 w_unknown := 0.U
                 w_alu_cmd := Cat(w_funct7(5), w_funct3)
-                w_imm_type := ImmType.s
+                w_imm_type := ImmType.shift
             } .otherwise {
                 // addi, slti, sltiu, xori, ori, andi
                 w_unknown := 0.U
@@ -229,7 +231,7 @@ class DecodeStage extends Module {
                 // slliw, srliw, sraiw
                 w_unknown := 0.U
                 w_alu_cmd := Cat(w_funct7(5), w_funct3)
-                w_imm_type := ImmType.s
+                w_imm_type := ImmType.shift
             }
         }
         is ("b0110011".U) {
@@ -354,13 +356,15 @@ class DecodeStage extends Module {
     val w_imm_j = Wire(UInt(64.W))
     val w_imm_i = Wire(UInt(64.W))
     val w_imm_b = Wire(UInt(64.W))
-    val w_imm_s = Wire(UInt(64.W))
+    val w_imm_shift = Wire(UInt(64.W))
+    val w_imm_store = Wire(UInt(64.W))
 
     w_imm_u := Cat(Fill(32, w_insn(31)), w_insn(31, 12), 0.U(12.W))
     w_imm_j := Cat(Fill(43, w_insn(31)), w_insn(31), w_insn(19, 12), w_insn(20), w_insn(30, 21), 0.U(1.W))
     w_imm_i := Cat(Fill(52, w_insn(31)), w_insn(31, 20))
     w_imm_b := Cat(Fill(53, w_insn(31)), w_insn(31), w_insn(7), w_insn(30, 25), w_insn(11, 8), 0.U(1.W))
-    w_imm_s := Cat(Fill(59, 0.U), w_insn(24, 20))
+    w_imm_shift := Cat(Fill(59, 0.U), w_insn(24, 20))
+    w_imm_store := Cat(Fill(52, w_insn(31)), w_insn(31, 25), w_insn(11, 7))
 
     val w_imm = Wire(UInt(64.W))
 
@@ -369,7 +373,8 @@ class DecodeStage extends Module {
         (w_imm_type === ImmType.j) -> w_imm_j,
         (w_imm_type === ImmType.i) -> w_imm_i,
         (w_imm_type === ImmType.b) -> w_imm_b,
-        (w_imm_type === ImmType.s) -> w_imm_s))
+        (w_imm_type === ImmType.shift) -> w_imm_shift,
+        (w_imm_type === ImmType.store) -> w_imm_store))
 
     // Pipeline register
     io.next.valid := RegNext(w_valid, 0.U)
