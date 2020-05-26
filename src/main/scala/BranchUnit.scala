@@ -42,22 +42,22 @@ class BranchUnit extends Module {
             }
         }
         is (BranchUnit.CMD_BLT) {
-            when (io.rs1_value < io.rs2_value) {
-                io.taken := 1.U
-            }
-        }
-        is (BranchUnit.CMD_BGE) {
-            when (io.rs1_value >= io.rs2_value) {
-                io.taken := 1.U
-            }
-        }
-        is (BranchUnit.CMD_BLTU) {
             when (io.rs1_value.asSInt() < io.rs2_value.asSInt()) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BGEU) {
+        is (BranchUnit.CMD_BGE) {
             when (io.rs1_value.asSInt() >= io.rs2_value.asSInt()) {
+                io.taken := 1.U
+            }
+        }
+        is (BranchUnit.CMD_BLTU) {
+            when (io.rs1_value < io.rs2_value) {
+                io.taken := 1.U
+            }
+        }
+        is (BranchUnit.CMD_BGEU) {
+            when (io.rs1_value >= io.rs2_value) {
                 io.taken := 1.U
             }
         }
