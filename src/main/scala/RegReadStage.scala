@@ -26,7 +26,7 @@ class RegReadStageIF extends Bundle {
     val csr_cmd = Output(CsrCmd())
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
-    val mem_cmd = Output(UInt(2.W))
+    val mem_cmd = Output(MemCmd())
     val mem_is_signed = Output(Bool())
     val mem_access_size = Output(UInt(2.W))
     val imm = Output(UInt(64.W))

@@ -7,10 +7,6 @@ import firrtl.annotations.MemoryLoadFileType
 import scala.annotation.switch
 
 object  MemUnit {
-    val CMD_NONE  = 0.U(2.W)
-    val CMD_LOAD  = 1.U(2.W)
-    val CMD_STORE = 2.U(2.W)
-
     val ACCESS_SIZE_BYTE = 0.U(2.W)
     val ACCESS_SIZE_HALF_WORD = 1.U(2.W)
     val ACCESS_SIZE_WORD = 2.U(2.W)
@@ -20,7 +16,7 @@ object  MemUnit {
 class MemUnit(val dcache_hex_path: String) extends Module {
     val io = IO(new Bundle {
         val valid = Input(Bool())
-        val cmd = Input(UInt(2.W))
+        val cmd = Input(MemCmd())
         val is_signed = Input(Bool())
         val access_size = Input(UInt(2.W))
         val imm = Input(UInt(64.W))
@@ -72,7 +68,7 @@ class MemUnit(val dcache_hex_path: String) extends Module {
 
     loadMemoryFromFile(m_dcache, dcache_hex_path, MemoryLoadFileType.Hex)
 
-    when (io.valid && io.cmd === MemUnit.CMD_STORE) {
+    when (io.valid && io.cmd === MemCmd.STORE) {
         m_dcache.write(w_index, w_write_value, w_mask.asBools())
     }
 
@@ -109,5 +105,5 @@ class MemUnit(val dcache_hex_path: String) extends Module {
     io.result := w_read_value_extended
 
     // Debug
-    io.host_io_value := Mux(io.valid && io.cmd === MemUnit.CMD_STORE && w_addr === Config.HOST_IO_ADDR, w_write_value.asTypeOf(UInt(64.W)), 0.U)
+    io.host_io_value := Mux(io.valid && io.cmd === MemCmd.STORE && w_addr === Config.HOST_IO_ADDR, w_write_value.asTypeOf(UInt(64.W)), 0.U)
 }

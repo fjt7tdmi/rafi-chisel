@@ -42,6 +42,12 @@ object CsrCmd extends ChiselEnum {
     val CLEAR = Value(3.U)
 }
 
+object MemCmd extends ChiselEnum {
+    val NONE  = Value(0.U)
+    val LOAD  = Value(1.U)
+    val STORE = Value(2.U)
+}
+
 class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
@@ -65,7 +71,7 @@ class DecodeStageIF extends Bundle {
     val csr_cmd = Output(CsrCmd())
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
-    val mem_cmd = Output(UInt(2.W))
+    val mem_cmd = Output(MemCmd())
     val mem_is_signed = Output(Bool())
     val mem_access_size = Output(UInt(2.W))
     val imm = Output(UInt(64.W))
@@ -118,7 +124,7 @@ class DecodeStage extends Module {
     val w_csr_cmd = Wire(CsrCmd())
     val w_csr_addr = Wire(UInt(12.W))
     val w_csr_use_imm = Wire(Bool())
-    val w_mem_cmd = Wire(UInt(2.W))
+    val w_mem_cmd = Wire(MemCmd())
     val w_mem_is_signed = Wire(Bool())
     val w_mem_access_size = Wire(UInt(2.W))
     val w_imm_type = Wire(ImmType())
@@ -140,7 +146,7 @@ class DecodeStage extends Module {
     w_csr_cmd := CsrCmd.NONE
     w_csr_addr := w_insn(31, 20)
     w_csr_use_imm := 0.U
-    w_mem_cmd := MemUnit.CMD_NONE
+    w_mem_cmd := MemCmd.NONE
     w_mem_is_signed := 0.U
     w_mem_access_size := MemUnit.ACCESS_SIZE_BYTE
     w_imm_type := ImmType.ZERO
@@ -206,7 +212,7 @@ class DecodeStage extends Module {
                 w_unknown := 0.U
                 w_execute_unit := UnitType.MEM
                 w_reg_write_enable := 1.U
-                w_mem_cmd := MemUnit.CMD_LOAD
+                w_mem_cmd := MemCmd.LOAD
                 w_mem_is_signed := ~w_funct3(2)
                 w_mem_access_size := w_funct3(1, 0)
                 w_imm_type := ImmType.IMM
@@ -217,7 +223,7 @@ class DecodeStage extends Module {
             when (w_funct3(2) === 0.U) {
                 w_unknown := 0.U
                 w_execute_unit := UnitType.MEM
-                w_mem_cmd := MemUnit.CMD_STORE
+                w_mem_cmd := MemCmd.STORE
                 w_mem_access_size := w_funct3(1, 0)
                 w_imm_type := ImmType.STORE
             }
