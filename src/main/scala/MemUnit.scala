@@ -6,13 +6,6 @@ import chisel3.util.experimental.loadMemoryFromFile
 import firrtl.annotations.MemoryLoadFileType
 import scala.annotation.switch
 
-object  MemUnit {
-    val ACCESS_SIZE_BYTE = 0.U(2.W)
-    val ACCESS_SIZE_HALF_WORD = 1.U(2.W)
-    val ACCESS_SIZE_WORD = 2.U(2.W)
-    val ACCESS_SIZE_DOUBLE_WORD = 3.U(2.W)
-}
-
 class MemUnit(val dcache_hex_path: String) extends Module {
     val io = IO(new Bundle {
         val valid = Input(Bool())
@@ -44,16 +37,16 @@ class MemUnit(val dcache_hex_path: String) extends Module {
     w_mask := 0.U
 
     switch (io.access_size) {
-        is (MemUnit.ACCESS_SIZE_BYTE) {
+        is (MemAccessSizeType.BYTE) {
             w_mask := "b0000_0001".U(8.W) << w_addr(2, 0)
         }
-        is (MemUnit.ACCESS_SIZE_HALF_WORD) {
+        is (MemAccessSizeType.HALF_WORD) {
             w_mask := "b0000_0011".U(8.W) << w_addr(2, 0)
         }
-        is (MemUnit.ACCESS_SIZE_WORD) {
+        is (MemAccessSizeType.WORD) {
             w_mask := "b0000_1111".U(8.W) << w_addr(2, 0)
         }
-        is (MemUnit.ACCESS_SIZE_DOUBLE_WORD) {
+        is (MemAccessSizeType.DOUBLE_WORD) {
             w_mask := "b1111_1111".U(8.W) << w_addr(2, 0)
         }
     }
@@ -89,13 +82,13 @@ class MemUnit(val dcache_hex_path: String) extends Module {
     w_read_value_extended := w_read_value_shifted
     when (io.is_signed) {
         switch (io.access_size) {
-            is (MemUnit.ACCESS_SIZE_BYTE) {
+            is (MemAccessSizeType.BYTE) {
                 w_read_value_extended := Cat(Fill(56, w_read_value_shifted(7)), w_read_value_shifted(7, 0))
             }
-            is (MemUnit.ACCESS_SIZE_HALF_WORD) {
+            is (MemAccessSizeType.HALF_WORD) {
                 w_read_value_extended := Cat(Fill(48, w_read_value_shifted(15)), w_read_value_shifted(15, 0))
             }
-            is (MemUnit.ACCESS_SIZE_WORD) {
+            is (MemAccessSizeType.WORD) {
                 w_read_value_extended := Cat(Fill(32, w_read_value_shifted(31)), w_read_value_shifted(31, 0))
             }
         }

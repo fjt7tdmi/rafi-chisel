@@ -48,6 +48,14 @@ object MemCmd extends ChiselEnum {
     val STORE = Value(2.U)
 }
 
+// TODO: use ChiselEnum
+object MemAccessSizeType {
+    val BYTE        = 0.U(2.W)
+    val HALF_WORD   = 1.U(2.W)
+    val WORD        = 2.U(2.W)
+    val DOUBLE_WORD = 3.U(2.W)
+}
+
 class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
@@ -148,7 +156,7 @@ class DecodeStage extends Module {
     w_csr_use_imm := 0.U
     w_mem_cmd := MemCmd.NONE
     w_mem_is_signed := 0.U
-    w_mem_access_size := MemUnit.ACCESS_SIZE_BYTE
+    w_mem_access_size := MemAccessSizeType.BYTE
     w_imm_type := ImmType.ZERO
     w_trap_enter := 0.U
     w_trap_return := 0.U
