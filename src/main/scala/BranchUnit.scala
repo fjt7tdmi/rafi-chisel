@@ -27,7 +27,7 @@ class BranchUnit extends Module {
         val target = Output(UInt(64.W))
     })
 
-    io.rd_value := io.pc
+    io.rd_value := io.pc + 4.U
 
     io.taken := 0.U
     switch (io.cmd) {
