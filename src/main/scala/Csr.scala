@@ -4,24 +4,19 @@ import chisel3._
 import chisel3.util._
 import scala.annotation.switch
 
-object  Csr {
-    val CMD_NONE  = "b00".U(2.W)
-    val CMD_WRITE = "b01".U(2.W)
-    val CMD_SET   = "b10".U(2.W)
-    val CMD_CLEAR = "b11".U(2.W)
-    
-    val ADDR_MSTATUS    = "h300".U(12.W)
-    val ADDR_MISA       = "h301".U(12.W)
-    val ADDR_MEDELEG    = "h302".U(12.W)
-    val ADDR_MIDELEG    = "h303".U(12.W)
-    val ADDR_MIE        = "h304".U(12.W)
-    val ADDR_MTVEC      = "h305".U(12.W)
-    val ADDR_MCOUNTEREN = "h306".U(12.W)
-    val ADDR_MSCRATCH   = "h340".U(12.W)
-    val ADDR_MEPC       = "h341".U(12.W)
-    val ADDR_MCAUSE     = "h342".U(12.W)
-    val ADDR_MTVAL      = "h343".U(12.W)
-    val ADDR_MIP        = "h344".U(12.W)
+object CsrAddr {
+    val MSTATUS    = "h300".U(12.W)
+    val MISA       = "h301".U(12.W)
+    val MEDELEG    = "h302".U(12.W)
+    val MIDELEG    = "h303".U(12.W)
+    val MIE        = "h304".U(12.W)
+    val MTVEC      = "h305".U(12.W)
+    val MCOUNTEREN = "h306".U(12.W)
+    val MSCRATCH   = "h340".U(12.W)
+    val MEPC       = "h341".U(12.W)
+    val MCAUSE     = "h342".U(12.W)
+    val MTVAL      = "h343".U(12.W)
+    val MIP        = "h344".U(12.W)
 }
 
 class CsrExecuteIF extends Bundle {
@@ -70,18 +65,18 @@ class Csr extends Module {
     val w_read_value = Wire(UInt(64.W))
 
     w_read_value := MuxCase(0.U, Seq(
-        (io.ex.addr === Csr.ADDR_MSTATUS) -> r_mstatus,
-        (io.ex.addr === Csr.ADDR_MISA) -> r_misa,
-        (io.ex.addr === Csr.ADDR_MEDELEG) -> r_medeleg,
-        (io.ex.addr === Csr.ADDR_MIDELEG) -> r_mideleg,
-        (io.ex.addr === Csr.ADDR_MIE) -> r_mie,
-        (io.ex.addr === Csr.ADDR_MTVEC) -> r_mtvec,
-        (io.ex.addr === Csr.ADDR_MCOUNTEREN) -> r_mcounteren,
-        (io.ex.addr === Csr.ADDR_MSCRATCH) -> r_mscratch,
-        (io.ex.addr === Csr.ADDR_MEPC) -> r_mepc,
-        (io.ex.addr === Csr.ADDR_MCAUSE) -> r_mcause,
-        (io.ex.addr === Csr.ADDR_MTVAL) -> r_mtval,
-        (io.ex.addr === Csr.ADDR_MIP) -> r_mip))
+        (io.ex.addr === CsrAddr.MSTATUS) -> r_mstatus,
+        (io.ex.addr === CsrAddr.MISA) -> r_misa,
+        (io.ex.addr === CsrAddr.MEDELEG) -> r_medeleg,
+        (io.ex.addr === CsrAddr.MIDELEG) -> r_mideleg,
+        (io.ex.addr === CsrAddr.MIE) -> r_mie,
+        (io.ex.addr === CsrAddr.MTVEC) -> r_mtvec,
+        (io.ex.addr === CsrAddr.MCOUNTEREN) -> r_mcounteren,
+        (io.ex.addr === CsrAddr.MSCRATCH) -> r_mscratch,
+        (io.ex.addr === CsrAddr.MEPC) -> r_mepc,
+        (io.ex.addr === CsrAddr.MCAUSE) -> r_mcause,
+        (io.ex.addr === CsrAddr.MTVAL) -> r_mtval,
+        (io.ex.addr === CsrAddr.MIP) -> r_mip))
 
     // Calculation
     val w_write_value = Wire(UInt(64.W))
@@ -114,18 +109,18 @@ class Csr extends Module {
     val w_mtval_we      = Wire(Bool())
     val w_mip_we        = Wire(Bool())
 
-    w_mstatus_we    := w_we && io.ex.addr === Csr.ADDR_MSTATUS
-    w_misa_we       := w_we && io.ex.addr === Csr.ADDR_MISA
-    w_medeleg_we    := w_we && io.ex.addr === Csr.ADDR_MEDELEG
-    w_mideleg_we    := w_we && io.ex.addr === Csr.ADDR_MIDELEG
-    w_mie_we        := w_we && io.ex.addr === Csr.ADDR_MIE
-    w_mtvec_we      := w_we && io.ex.addr === Csr.ADDR_MTVEC
-    w_mcounteren_we := w_we && io.ex.addr === Csr.ADDR_MCOUNTEREN
-    w_mscratch_we   := w_we && io.ex.addr === Csr.ADDR_MSCRATCH
-    w_mepc_we       := w_we && io.ex.addr === Csr.ADDR_MEPC
-    w_mcause_we     := w_we && io.ex.addr === Csr.ADDR_MCAUSE
-    w_mtval_we      := w_we && io.ex.addr === Csr.ADDR_MTVAL
-    w_mip_we        := w_we && io.ex.addr === Csr.ADDR_MIP
+    w_mstatus_we    := w_we && io.ex.addr === CsrAddr.MSTATUS
+    w_misa_we       := w_we && io.ex.addr === CsrAddr.MISA
+    w_medeleg_we    := w_we && io.ex.addr === CsrAddr.MEDELEG
+    w_mideleg_we    := w_we && io.ex.addr === CsrAddr.MIDELEG
+    w_mie_we        := w_we && io.ex.addr === CsrAddr.MIE
+    w_mtvec_we      := w_we && io.ex.addr === CsrAddr.MTVEC
+    w_mcounteren_we := w_we && io.ex.addr === CsrAddr.MCOUNTEREN
+    w_mscratch_we   := w_we && io.ex.addr === CsrAddr.MSCRATCH
+    w_mepc_we       := w_we && io.ex.addr === CsrAddr.MEPC
+    w_mcause_we     := w_we && io.ex.addr === CsrAddr.MCAUSE
+    w_mtval_we      := w_we && io.ex.addr === CsrAddr.MTVAL
+    w_mip_we        := w_we && io.ex.addr === CsrAddr.MIP
 
     r_mstatus := MuxCase(r_mstatus, Seq(
         io.trap.mstatus_we -> io.trap.mstatus_write_value,
