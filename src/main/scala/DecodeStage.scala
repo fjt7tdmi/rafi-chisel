@@ -6,13 +6,13 @@ import chisel3.experimental.ChiselEnum
 import scala.annotation.switch
 
 object ImmType extends ChiselEnum {
-    val zero = Value(0.U)
-    val u = Value(1.U)
-    val j = Value(2.U)
-    val i = Value(3.U)
-    val b = Value(4.U)
-    val shift = Value(5.U)
-    val store = Value(6.U)
+    val ZERO = Value(0.U)
+    val UNSIGNED = Value(1.U)
+    val JUMP = Value(2.U)
+    val IMM = Value(3.U)
+    val BRANCH = Value(4.U)
+    val SHIFT = Value(5.U)
+    val STORE = Value(6.U)
 }
 
 object UnitType extends ChiselEnum {
@@ -124,7 +124,7 @@ class DecodeStage extends Module {
     w_mem_cmd := MemUnit.CMD_NONE
     w_mem_is_signed := 0.U
     w_mem_access_size := MemUnit.ACCESS_SIZE_BYTE
-    w_imm_type := ImmType.zero
+    w_imm_type := ImmType.ZERO
     w_trap_enter := 0.U
     w_trap_return := 0.U
     w_trap_cause := 0.U
@@ -141,7 +141,7 @@ class DecodeStage extends Module {
             w_alu_is_word := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_ZERO
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
-            w_imm_type := ImmType.u
+            w_imm_type := ImmType.UNSIGNED
         }
         is ("b0010111".U) {
             // auipc
@@ -151,7 +151,7 @@ class DecodeStage extends Module {
             w_alu_cmd := Alu.CMD_ADD
             w_alu_src1_type := Alu.SRC1_TYPE_PC
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
-            w_imm_type := ImmType.u
+            w_imm_type := ImmType.UNSIGNED
         }
         is ("b1101111".U) {
             // jal
@@ -159,7 +159,7 @@ class DecodeStage extends Module {
             w_execute_unit := UnitType.BRANCH
             w_reg_write_enable := 1.U
             w_branch_always := 1.U
-            w_imm_type := ImmType.j
+            w_imm_type := ImmType.JUMP
         }
         is ("b1100111".U) {
             // jalr
@@ -169,7 +169,7 @@ class DecodeStage extends Module {
                 w_reg_write_enable := 1.U
                 w_branch_always := 1.U
                 w_branch_relative := 1.U
-                w_imm_type := ImmType.i
+                w_imm_type := ImmType.IMM
             }
         }
         is ("b1100011".U) {
@@ -178,7 +178,7 @@ class DecodeStage extends Module {
                 w_unknown := 0.U
                 w_execute_unit := UnitType.BRANCH
                 w_branch_cmd := w_funct3
-                w_imm_type := ImmType.b
+                w_imm_type := ImmType.BRANCH
             }
         }
         is ("b0000011".U) {
@@ -190,7 +190,7 @@ class DecodeStage extends Module {
                 w_mem_cmd := MemUnit.CMD_LOAD
                 w_mem_is_signed := ~w_funct3(2)
                 w_mem_access_size := w_funct3(1, 0)
-                w_imm_type := ImmType.i
+                w_imm_type := ImmType.IMM
             }
         }
         is ("b0100011".U) {
@@ -200,7 +200,7 @@ class DecodeStage extends Module {
                 w_execute_unit := UnitType.MEM
                 w_mem_cmd := MemUnit.CMD_STORE
                 w_mem_access_size := w_funct3(1, 0)
-                w_imm_type := ImmType.store
+                w_imm_type := ImmType.STORE
             }
         }
         is ("b0010011".U) {
@@ -216,12 +216,12 @@ class DecodeStage extends Module {
                 // slli, srli, srai
                 w_unknown := 0.U
                 w_alu_cmd := Cat(w_funct7(5), w_funct3)
-                w_imm_type := ImmType.shift
+                w_imm_type := ImmType.SHIFT
             } .otherwise {
                 // addi, slti, sltiu, xori, ori, andi
                 w_unknown := 0.U
                 w_alu_cmd := Cat(0.U(1.W), w_funct3)
-                w_imm_type := ImmType.i
+                w_imm_type := ImmType.IMM
             }
         }
         is ("b0011011".U) {
@@ -235,7 +235,7 @@ class DecodeStage extends Module {
                 // addiw
                 w_unknown := 0.U
                 w_alu_cmd := Alu.CMD_ADD
-                w_imm_type := ImmType.i
+                w_imm_type := ImmType.IMM
             } .elsewhen (
                 (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
                 (w_funct3 === "b101".U && w_funct7 === "b0000000".U) ||
@@ -243,7 +243,7 @@ class DecodeStage extends Module {
                 // slliw, srliw, sraiw
                 w_unknown := 0.U
                 w_alu_cmd := Cat(w_funct7(5), w_funct3)
-                w_imm_type := ImmType.shift
+                w_imm_type := ImmType.SHIFT
             }
         }
         is ("b0110011".U) {
@@ -381,12 +381,12 @@ class DecodeStage extends Module {
     val w_imm = Wire(UInt(64.W))
 
     w_imm := MuxCase(0.U, Seq(
-        (w_imm_type === ImmType.u) -> w_imm_u,
-        (w_imm_type === ImmType.j) -> w_imm_j,
-        (w_imm_type === ImmType.i) -> w_imm_i,
-        (w_imm_type === ImmType.b) -> w_imm_b,
-        (w_imm_type === ImmType.shift) -> w_imm_shift,
-        (w_imm_type === ImmType.store) -> w_imm_store))
+        (w_imm_type === ImmType.UNSIGNED) -> w_imm_u,
+        (w_imm_type === ImmType.JUMP) -> w_imm_j,
+        (w_imm_type === ImmType.IMM) -> w_imm_i,
+        (w_imm_type === ImmType.BRANCH) -> w_imm_b,
+        (w_imm_type === ImmType.SHIFT) -> w_imm_shift,
+        (w_imm_type === ImmType.STORE) -> w_imm_store))
 
     // Pipeline register
     io.next.valid := RegNext(w_valid, 0.U)
