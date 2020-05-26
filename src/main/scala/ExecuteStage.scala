@@ -83,21 +83,21 @@ class ExecuteStage(val dcache_hex_path: String) extends Module {
     m_mem.io.rs2_value := w_rs2_value
 
     // Result Mux
-    val reg_write_value = Wire(UInt(64.W))
-    val branch_taken = Wire(Bool())
-    val branch_target = Wire(UInt(64.W))
+    val w_reg_write_value = Wire(UInt(64.W))
+    val w_branch_taken = Wire(Bool())
+    val w_branch_target = Wire(UInt(64.W))
 
-    reg_write_value := MuxCase(0.U, Seq(
+    w_reg_write_value := MuxCase(0.U, Seq(
         (io.prev.execute_unit === UnitType.ALU) -> m_alu.io.result,
         (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.rd_value,
         (io.prev.execute_unit === UnitType.CSR) -> io.csr.read_value,
         (io.prev.execute_unit === UnitType.MEM) -> m_mem.io.result))
-    branch_taken := MuxCase(0.U, Seq(
+    w_branch_taken := MuxCase(0.U, Seq(
         (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.taken))
-    branch_target := MuxCase(0.U, Seq(
+    w_branch_target := MuxCase(0.U, Seq(
         (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.target))
 
-    m_bypass.io.rd_value := reg_write_value
+    m_bypass.io.rd_value := w_reg_write_value
 
     // CSR
     io.csr.valid := w_valid
@@ -115,8 +115,8 @@ class ExecuteStage(val dcache_hex_path: String) extends Module {
     io.next.trap_value := RegNext(io.prev.trap_value, 0.U)
     io.next.rd := RegNext(io.prev.rd, 0.U)
     io.next.reg_write_enable := RegNext(io.prev.reg_write_enable, 0.U)
-    io.next.reg_write_value := RegNext(reg_write_value, 0.U)
-    io.next.branch_taken := RegNext(branch_taken, 0.U)
-    io.next.branch_target := RegNext(branch_target, 0.U)
+    io.next.reg_write_value := RegNext(w_reg_write_value, 0.U)
+    io.next.branch_taken := RegNext(w_branch_taken, 0.U)
+    io.next.branch_target := RegNext(w_branch_target, 0.U)
     io.next.host_io_value := RegNext(m_mem.io.host_io_value, 0.U)
 }

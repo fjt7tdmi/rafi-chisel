@@ -44,18 +44,18 @@ class PipelineController extends Module {
         val rw = new PipelineControllerIF.RW
     })
 
-    val flush = Wire(Bool())
-    val flush_target = Wire(UInt(64.W))
+    val w_flush = Wire(Bool())
+    val w_flush_target = Wire(UInt(64.W))
 
-    flush := io.rw.flush
-    flush_target := io.rw.flush_target
+    w_flush := io.rw.flush
+    w_flush_target := io.rw.flush_target
 
-    io.pp.flush := flush
-    io.pp.flush_target := flush_target
-    io.pt.flush := flush
-    io.ir.flush := flush
-    io.it.flush := flush
-    io.id.flush := flush
-    io.rr.flush := flush
-    io.ex.flush := flush
+    io.pp.flush := w_flush
+    io.pp.flush_target := w_flush_target
+    io.pt.flush := w_flush
+    io.ir.flush := w_flush
+    io.it.flush := w_flush
+    io.id.flush := w_flush
+    io.rr.flush := w_flush
+    io.ex.flush := w_flush
 }
