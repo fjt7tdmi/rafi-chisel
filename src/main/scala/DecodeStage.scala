@@ -23,6 +23,18 @@ object UnitType extends ChiselEnum {
     val MEM    = Value(4.U)
 }
 
+object AluSrc1Type extends ChiselEnum {
+    val ZERO = Value(0.U)
+    val REG  = Value(1.U)
+    val PC   = Value(2.U)
+}
+
+object AluSrc2Type extends ChiselEnum {
+    val ZERO = Value(0.U)
+    val REG  = Value(1.U)
+    val IMM  = Value(2.U)
+}
+
 class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
@@ -38,8 +50,8 @@ class DecodeStageIF extends Bundle {
     val rs2 = Output(UInt(5.W))
     val alu_cmd = Output(UInt(4.W))
     val alu_is_word = Output(Bool())
-    val alu_src1_type = Output(UInt(2.W))
-    val alu_src2_type = Output(UInt(2.W))
+    val alu_src1_type = Output(AluSrc1Type())
+    val alu_src2_type = Output(AluSrc2Type())
     val branch_cmd = Output(UInt(3.W))
     val branch_always = Output(Bool())
     val branch_relative = Output(Bool())
@@ -91,8 +103,8 @@ class DecodeStage extends Module {
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
     val w_alu_is_word = Wire(Bool())
-    val w_alu_src1_type = Wire(UInt(2.W))
-    val w_alu_src2_type = Wire(UInt(2.W))
+    val w_alu_src1_type = Wire(AluSrc1Type())
+    val w_alu_src2_type = Wire(AluSrc2Type())
     val w_branch_cmd = Wire(UInt(3.W))
     val w_branch_always = Wire(Bool())
     val w_branch_relative = Wire(Bool())
@@ -113,8 +125,8 @@ class DecodeStage extends Module {
     w_reg_write_enable := 0.U
     w_alu_cmd := Alu.CMD_ADD
     w_alu_is_word := 0.U
-    w_alu_src1_type := Alu.SRC1_TYPE_ZERO
-    w_alu_src2_type := Alu.SRC2_TYPE_ZERO
+    w_alu_src1_type := AluSrc1Type.ZERO
+    w_alu_src2_type := AluSrc2Type.ZERO
     w_branch_cmd := BranchUnit.CMD_BEQ
     w_branch_always := 0.U
     w_branch_relative := 0.U
@@ -139,8 +151,8 @@ class DecodeStage extends Module {
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
             w_alu_is_word := 1.U
-            w_alu_src1_type := Alu.SRC1_TYPE_ZERO
-            w_alu_src2_type := Alu.SRC2_TYPE_IMM
+            w_alu_src1_type := AluSrc1Type.ZERO
+            w_alu_src2_type := AluSrc2Type.IMM
             w_imm_type := ImmType.UNSIGNED
         }
         is ("b0010111".U) {
@@ -149,8 +161,8 @@ class DecodeStage extends Module {
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
-            w_alu_src1_type := Alu.SRC1_TYPE_PC
-            w_alu_src2_type := Alu.SRC2_TYPE_IMM
+            w_alu_src1_type := AluSrc1Type.PC
+            w_alu_src2_type := AluSrc2Type.IMM
             w_imm_type := ImmType.UNSIGNED
         }
         is ("b1101111".U) {
@@ -206,8 +218,8 @@ class DecodeStage extends Module {
         is ("b0010011".U) {
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
-            w_alu_src1_type := Alu.SRC1_TYPE_REG
-            w_alu_src2_type := Alu.SRC2_TYPE_IMM
+            w_alu_src1_type := AluSrc1Type.REG
+            w_alu_src2_type := AluSrc2Type.IMM
 
             when (
                 (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
@@ -228,8 +240,8 @@ class DecodeStage extends Module {
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_is_word := 1.U
-            w_alu_src1_type := Alu.SRC1_TYPE_REG
-            w_alu_src2_type := Alu.SRC2_TYPE_IMM
+            w_alu_src1_type := AluSrc1Type.REG
+            w_alu_src2_type := AluSrc2Type.IMM
 
             when (w_funct3 === "b000".U) {
                 // addiw
@@ -252,8 +264,8 @@ class DecodeStage extends Module {
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Cat(w_funct7(5), w_funct3)
-            w_alu_src1_type := Alu.SRC1_TYPE_REG
-            w_alu_src2_type := Alu.SRC2_TYPE_REG
+            w_alu_src1_type := AluSrc1Type.REG
+            w_alu_src2_type := AluSrc2Type.REG
         }
         is ("b0111011".U) {
             // addw, subw, sllw, srlw, sraw
@@ -261,8 +273,8 @@ class DecodeStage extends Module {
             w_reg_write_enable := 1.U
             w_alu_is_word := 1.U
             w_alu_cmd := Cat(w_funct7(5), w_funct3)
-            w_alu_src1_type := Alu.SRC1_TYPE_REG
-            w_alu_src2_type := Alu.SRC2_TYPE_REG
+            w_alu_src1_type := AluSrc1Type.REG
+            w_alu_src2_type := AluSrc2Type.REG
 
             when (
                 (w_funct3 === "b000".U && w_funct7 === "b0000000".U) ||

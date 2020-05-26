@@ -15,22 +15,14 @@ object  Alu {
     val CMD_SRA  = "b1101".U(4.W)
     val CMD_OR   = "b0110".U(4.W)
     val CMD_AND  = "b0111".U(4.W)
-
-    val SRC1_TYPE_ZERO = 0.U(2.W)
-    val SRC1_TYPE_REG  = 1.U(2.W)
-    val SRC1_TYPE_PC   = 2.U(2.W)
-    
-    val SRC2_TYPE_ZERO = 0.U(2.W)
-    val SRC2_TYPE_REG  = 1.U(2.W)
-    val SRC2_TYPE_IMM  = 2.U(2.W)
 }
 
 class Alu extends Module {
     val io = IO(new Bundle {
         val cmd = Input(UInt(4.W))
         val is_word = Input(Bool())
-        val src1_type = Input(UInt(2.W))
-        val src2_type = Input(UInt(2.W))
+        val src1_type = Input(AluSrc1Type())
+        val src2_type = Input(AluSrc2Type())
         val pc = Input(UInt(64.W))
         val imm = Input(UInt(64.W))
         val rs1_value = Input(UInt(64.W))
@@ -44,11 +36,11 @@ class Alu extends Module {
     val result_64 = Wire(UInt(64.W))
 
     src1_64 := MuxCase(0.U, Seq(
-        (io.src1_type === Alu.SRC1_TYPE_REG) -> io.rs1_value,
-        (io.src1_type === Alu.SRC1_TYPE_PC) -> io.pc))
+        (io.src1_type === AluSrc1Type.REG) -> io.rs1_value,
+        (io.src1_type === AluSrc1Type.PC) -> io.pc))
     src2_64 := MuxCase(0.U, Seq(
-        (io.src2_type === Alu.SRC2_TYPE_REG) -> io.rs2_value,
-        (io.src2_type === Alu.SRC2_TYPE_IMM) -> io.imm))
+        (io.src2_type === AluSrc2Type.REG) -> io.rs2_value,
+        (io.src2_type === AluSrc2Type.IMM) -> io.imm))
 
     result_64 := 0.U
     switch (io.cmd) {
