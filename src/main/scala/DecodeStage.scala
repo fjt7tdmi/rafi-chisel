@@ -49,6 +49,16 @@ object AluSrc2Type extends ChiselEnum {
     val IMM  = Value(2.U)
 }
 
+// TODO: use ChiselEnum
+object BranchCmd {
+    val BEQ  = "b000".U(3.W)
+    val BNE  = "b001".U(3.W)
+    val BLT  = "b100".U(3.W)
+    val BGE  = "b101".U(3.W)
+    val BLTU = "b110".U(3.W)
+    val BGEU = "b111".U(3.W)
+}
+
 object CsrCmd extends ChiselEnum {
     val NONE  = Value(0.U)
     val WRITE = Value(1.U)
@@ -162,7 +172,7 @@ class DecodeStage extends Module {
     w_alu_is_word := 0.U
     w_alu_src1_type := AluSrc1Type.ZERO
     w_alu_src2_type := AluSrc2Type.ZERO
-    w_branch_cmd := BranchUnit.CMD_BEQ
+    w_branch_cmd := BranchCmd.BEQ
     w_branch_always := 0.U
     w_branch_relative := 0.U
     w_csr_cmd := CsrCmd.NONE

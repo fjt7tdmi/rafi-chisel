@@ -4,15 +4,6 @@ import chisel3._
 import chisel3.util._
 import scala.annotation.switch
 
-object  BranchUnit {
-    val CMD_BEQ  = "b000".U(3.W)
-    val CMD_BNE  = "b001".U(3.W)
-    val CMD_BLT  = "b100".U(3.W)
-    val CMD_BGE  = "b101".U(3.W)
-    val CMD_BLTU = "b110".U(3.W)
-    val CMD_BGEU = "b111".U(3.W)
-}
-
 class BranchUnit extends Module {
     val io = IO(new Bundle {
         val cmd = Input(UInt(3.W))
@@ -31,32 +22,32 @@ class BranchUnit extends Module {
 
     io.taken := 0.U
     switch (io.cmd) {
-        is (BranchUnit.CMD_BEQ) {
+        is (BranchCmd.BEQ) {
             when (io.rs1_value === io.rs2_value) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BNE) {
+        is (BranchCmd.BNE) {
             when (io.rs1_value != io.rs2_value) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BLT) {
+        is (BranchCmd.BLT) {
             when (io.rs1_value.asSInt() < io.rs2_value.asSInt()) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BGE) {
+        is (BranchCmd.BGE) {
             when (io.rs1_value.asSInt() >= io.rs2_value.asSInt()) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BLTU) {
+        is (BranchCmd.BLTU) {
             when (io.rs1_value < io.rs2_value) {
                 io.taken := 1.U
             }
         }
-        is (BranchUnit.CMD_BGEU) {
+        is (BranchCmd.BGEU) {
             when (io.rs1_value >= io.rs2_value) {
                 io.taken := 1.U
             }
