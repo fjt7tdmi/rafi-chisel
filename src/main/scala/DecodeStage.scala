@@ -180,7 +180,7 @@ class DecodeStage extends Module {
                 w_execute_unit := ExecuteStage.UNIT_MEM
                 w_reg_write_enable := 1.U
                 w_mem_cmd := MemUnit.CMD_LOAD
-                w_mem_is_signed := !w_funct3(2)
+                w_mem_is_signed := ~w_funct3(2)
                 w_mem_access_size := w_funct3(1, 0)
                 w_imm_type := ImmType.i
             }

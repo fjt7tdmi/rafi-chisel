@@ -88,7 +88,7 @@ class MemUnit(val dcache_hex_path: String) extends Module {
         w_read_value_masked(i) := Mux(w_mask(i), w_read_value(i), 0.U)
     }
 
-    w_read_value_shifted := Cat(w_read_value_masked) >> w_addr(2, 0)
+    w_read_value_shifted := Cat(w_read_value_masked.reverse) >> Cat(w_addr(2, 0), 0.U(3.W))
 
     w_read_value_extended := w_read_value_shifted
     when (io.is_signed) {
@@ -100,13 +100,13 @@ class MemUnit(val dcache_hex_path: String) extends Module {
                 w_read_value_extended := Cat(Fill(48, w_read_value_shifted(15)), w_read_value_shifted(15, 0))
             }
             is (MemUnit.ACCESS_SIZE_WORD) {
-                w_read_value_extended := Cat(Fill(43, w_read_value_shifted(31)), w_read_value_shifted(31, 0))
+                w_read_value_extended := Cat(Fill(32, w_read_value_shifted(31)), w_read_value_shifted(31, 0))
             }
         }
     }
 
     // Result
-    io.result := w_read_value_shifted
+    io.result := w_read_value_extended
 
     // Debug
     io.host_io_value := Mux(io.valid && io.cmd === MemUnit.CMD_STORE && w_addr === Config.HOST_IO_ADDR, w_write_value.asTypeOf(UInt(64.W)), 0.U)
