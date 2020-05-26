@@ -96,14 +96,14 @@ class ExecuteStage(val dcache_hex_path: String) extends Module {
     val branch_target = Wire(UInt(64.W))
 
     reg_write_value := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === ExecuteStage.UNIT_ALU) -> m_alu.io.result,
-        (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.rd_value,
-        (io.prev.execute_unit === ExecuteStage.UNIT_CSR) -> io.csr.read_value,
-        (io.prev.execute_unit === ExecuteStage.UNIT_MEM) -> m_mem.io.result))
+        (io.prev.execute_unit === UnitType.ALU) -> m_alu.io.result,
+        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.rd_value,
+        (io.prev.execute_unit === UnitType.CSR) -> io.csr.read_value,
+        (io.prev.execute_unit === UnitType.MEM) -> m_mem.io.result))
     branch_taken := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.taken))
+        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.taken))
     branch_target := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === ExecuteStage.UNIT_BRANCH) -> m_branch.io.target))
+        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.target))
 
     m_bypass.io.rd_value := reg_write_value
 

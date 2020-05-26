@@ -15,6 +15,14 @@ object ImmType extends ChiselEnum {
     val store = Value(6.U)
 }
 
+object UnitType extends ChiselEnum {
+    val ALU    = Value(0.U)
+    val BRANCH = Value(1.U)
+    val CSR    = Value(2.U)
+    val TRAP   = Value(3.U)
+    val MEM    = Value(4.U)
+}
+
 class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
@@ -23,7 +31,7 @@ class DecodeStageIF extends Bundle {
     val trap_return = Output(Bool())
     val trap_cause = Output(UInt(4.W))
     val trap_value = Output(UInt(64.W))
-    val execute_unit = Output(UInt(3.W))
+    val execute_unit = Output(UnitType())
     val reg_write_enable = Output(Bool())
     val rd = Output(UInt(5.W))
     val rs1 = Output(UInt(5.W))
@@ -79,7 +87,7 @@ class DecodeStage extends Module {
     w_rd := w_insn(11, 7)
 
     val w_unknown = Wire(Bool())
-    val w_execute_unit = Wire(UInt(3.W))
+    val w_execute_unit = Wire(UnitType())
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
     val w_alu_is_word = Wire(Bool())
@@ -101,7 +109,7 @@ class DecodeStage extends Module {
     val w_trap_value = Wire(UInt(64.W))
 
     w_unknown := 1.U
-    w_execute_unit := ExecuteStage.UNIT_ALU
+    w_execute_unit := UnitType.ALU
     w_reg_write_enable := 0.U
     w_alu_cmd := Alu.CMD_ADD
     w_alu_is_word := 0.U
@@ -127,7 +135,7 @@ class DecodeStage extends Module {
         is ("b0110111".U) {
             // lui
             w_unknown := 0.U
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
             w_alu_is_word := 1.U
@@ -138,7 +146,7 @@ class DecodeStage extends Module {
         is ("b0010111".U) {
             // auipc
             w_unknown := 0.U
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Alu.CMD_ADD
             w_alu_src1_type := Alu.SRC1_TYPE_PC
@@ -148,7 +156,7 @@ class DecodeStage extends Module {
         is ("b1101111".U) {
             // jal
             w_unknown := 0.U
-            w_execute_unit := ExecuteStage.UNIT_BRANCH
+            w_execute_unit := UnitType.BRANCH
             w_reg_write_enable := 1.U
             w_branch_always := 1.U
             w_imm_type := ImmType.j
@@ -157,7 +165,7 @@ class DecodeStage extends Module {
             // jalr
             when (w_funct3 === 0.U) {
                 w_unknown := 0.U
-                w_execute_unit := ExecuteStage.UNIT_BRANCH
+                w_execute_unit := UnitType.BRANCH
                 w_reg_write_enable := 1.U
                 w_branch_always := 1.U
                 w_branch_relative := 1.U
@@ -168,7 +176,7 @@ class DecodeStage extends Module {
             // beq, bne, blt, bge, bltu, bgeu
             when (w_funct3(2, 1) != "b01".U) {
                 w_unknown := 0.U
-                w_execute_unit := ExecuteStage.UNIT_BRANCH
+                w_execute_unit := UnitType.BRANCH
                 w_branch_cmd := w_funct3
                 w_imm_type := ImmType.b
             }
@@ -177,7 +185,7 @@ class DecodeStage extends Module {
             // lb, lh, lw, ld, lbu, lhu, lwu
             when (w_funct3 != "b111".U) {
                 w_unknown := 0.U
-                w_execute_unit := ExecuteStage.UNIT_MEM
+                w_execute_unit := UnitType.MEM
                 w_reg_write_enable := 1.U
                 w_mem_cmd := MemUnit.CMD_LOAD
                 w_mem_is_signed := ~w_funct3(2)
@@ -189,14 +197,14 @@ class DecodeStage extends Module {
             // sb, sh, sw, sd
             when (w_funct3(2) === 0.U) {
                 w_unknown := 0.U
-                w_execute_unit := ExecuteStage.UNIT_MEM
+                w_execute_unit := UnitType.MEM
                 w_mem_cmd := MemUnit.CMD_STORE
                 w_mem_access_size := w_funct3(1, 0)
                 w_imm_type := ImmType.store
             }
         }
         is ("b0010011".U) {
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_REG
             w_alu_src2_type := Alu.SRC2_TYPE_IMM
@@ -217,7 +225,7 @@ class DecodeStage extends Module {
             }
         }
         is ("b0011011".U) {
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_is_word := 1.U
             w_alu_src1_type := Alu.SRC1_TYPE_REG
@@ -241,7 +249,7 @@ class DecodeStage extends Module {
         is ("b0110011".U) {
             // add, sub, sll, slt, sltu, xor, srl, sra, or, and
             w_unknown := 0.U
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_cmd := Cat(w_funct7(5), w_funct3)
             w_alu_src1_type := Alu.SRC1_TYPE_REG
@@ -249,7 +257,7 @@ class DecodeStage extends Module {
         }
         is ("b0111011".U) {
             // addw, subw, sllw, srlw, sraw
-            w_execute_unit := ExecuteStage.UNIT_ALU
+            w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
             w_alu_is_word := 1.U
             w_alu_cmd := Cat(w_funct7(5), w_funct3)
@@ -284,7 +292,7 @@ class DecodeStage extends Module {
                     // ecall
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00000".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_execute_unit := ExecuteStage.UNIT_TRAP
+                        w_execute_unit := UnitType.TRAP
                         w_trap_enter := 1.U
                         w_trap_cause := 11.U // ECALL_FROM_M
                         w_trap_value := io.prev.pc
@@ -292,7 +300,7 @@ class DecodeStage extends Module {
                     // ebreak
                     when (w_funct7 === "b0000000".U && w_rs2 === "b00001".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_execute_unit := ExecuteStage.UNIT_TRAP
+                        w_execute_unit := UnitType.TRAP
                         w_trap_enter := 1.U
                         w_trap_cause := 3.U // BREAKPOINT
                         w_trap_value := io.prev.pc
@@ -300,14 +308,14 @@ class DecodeStage extends Module {
                     // mret
                     when (w_funct7 === "b0011000".U && w_rs2 === "b00010".U && w_rs1 === "b00000".U && w_rd === "b00000".U) {
                         w_unknown := 0.U
-                        w_execute_unit := ExecuteStage.UNIT_TRAP
+                        w_execute_unit := UnitType.TRAP
                         w_trap_return := 1.U
                     }
                 }
                 // csrrw
                 is ("b001".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 0.U
@@ -315,7 +323,7 @@ class DecodeStage extends Module {
                 // csrrs
                 is ("b010".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 0.U
@@ -323,7 +331,7 @@ class DecodeStage extends Module {
                 // csrrc
                 is ("b011".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 0.U
@@ -331,7 +339,7 @@ class DecodeStage extends Module {
                 // csrrwi
                 is ("b101".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_WRITE
                     w_csr_use_imm := 1.U
@@ -339,7 +347,7 @@ class DecodeStage extends Module {
                 // csrrsi
                 is ("b110".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_CLEAR
                     w_csr_use_imm := 1.U
@@ -347,7 +355,7 @@ class DecodeStage extends Module {
                 // csrrci
                 is ("b111".U) {
                     w_unknown := 0.U
-                    w_execute_unit := ExecuteStage.UNIT_CSR
+                    w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
                     w_csr_cmd := Csr.CMD_SET
                     w_csr_use_imm := 1.U

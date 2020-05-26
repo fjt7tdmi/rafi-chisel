@@ -11,7 +11,7 @@ class RegReadStageIF extends Bundle {
     val trap_return = Output(Bool())
     val trap_cause = Output(UInt(4.W))
     val trap_value = Output(UInt(64.W))
-    val execute_unit = Output(UInt(3.W))
+    val execute_unit = Output(UnitType())
     val rd = Output(UInt(5.W))
     val rs1 = Output(UInt(5.W))
     val rs2 = Output(UInt(5.W))
