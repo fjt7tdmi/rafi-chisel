@@ -22,12 +22,12 @@ for bin_path in `ls $DIR_BIN/rv64ui-p-*.bin`; do
     hex_6_filename=${bin_filename%.*}_6.hex
     hex_7_filename=${bin_filename%.*}_7.hex
 
-    awk '{print $1}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_0_filename
-    awk '{print $2}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_1_filename
-    awk '{print $3}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_2_filename
-    awk '{print $4}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_3_filename
-    awk '{print $5}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_4_filename
-    awk '{print $6}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_5_filename
-    awk '{print $7}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_6_filename
-    awk '{print $8}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_7_filename
+    awk '{print $8}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_0_filename
+    awk '{print $7}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_1_filename
+    awk '{print $6}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_2_filename
+    awk '{print $5}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_3_filename
+    awk '{print $4}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_4_filename
+    awk '{print $3}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_5_filename
+    awk '{print $2}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_6_filename
+    awk '{print $1}' $DIR_HEX_DCACHE/$hex_filename > $DIR_HEX_DCACHE/$hex_7_filename
 done

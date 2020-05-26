@@ -23,7 +23,7 @@ class DecodeStageIF extends Bundle {
     val trap_return = Output(Bool())
     val trap_cause = Output(UInt(4.W))
     val trap_value = Output(UInt(64.W))
-    val execute_unit = Output(UInt(2.W))
+    val execute_unit = Output(UInt(3.W))
     val reg_write_enable = Output(Bool())
     val rd = Output(UInt(5.W))
     val rs1 = Output(UInt(5.W))
@@ -79,7 +79,7 @@ class DecodeStage extends Module {
     w_rd := w_insn(11, 7)
 
     val w_unknown = Wire(Bool())
-    val w_execute_unit = Wire(UInt(2.W))
+    val w_execute_unit = Wire(UInt(3.W))
     val w_reg_write_enable = Wire(Bool())
     val w_alu_cmd = Wire(UInt(4.W))
     val w_alu_is_word = Wire(Bool())
@@ -177,15 +177,19 @@ class DecodeStage extends Module {
             // lb, lh, lw, ld, lbu, lhu, lwu
             when (w_funct3 != "b111".U) {
                 w_unknown := 0.U
+                w_execute_unit := ExecuteStage.UNIT_MEM
+                w_reg_write_enable := 1.U
                 w_mem_cmd := MemUnit.CMD_LOAD
                 w_mem_is_signed := !w_funct3(2)
                 w_mem_access_size := w_funct3(1, 0)
+                w_imm_type := ImmType.i
             }
         }
         is ("b0100011".U) {
             // sb, sh, sw, sd
             when (w_funct3(2) === 0.U) {
                 w_unknown := 0.U
+                w_execute_unit := ExecuteStage.UNIT_MEM
                 w_mem_cmd := MemUnit.CMD_STORE
                 w_mem_access_size := w_funct3(1, 0)
                 w_imm_type := ImmType.store
