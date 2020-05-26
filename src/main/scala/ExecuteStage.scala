@@ -21,14 +21,6 @@ class ExecuteStageIF extends Bundle {
     val host_io_value = Output(UInt(64.W))
 }
 
-object ExecuteStage {
-    val UNIT_ALU    = 0.U(3.W)
-    val UNIT_BRANCH = 1.U(3.W)
-    val UNIT_CSR    = 2.U(3.W)
-    val UNIT_TRAP   = 3.U(3.W)
-    val UNIT_MEM    = 4.U(3.W)
-}
-
 class ExecuteStage(val dcache_hex_path: String) extends Module {
     val io = IO(new Bundle {
         val ctrl = Flipped(new PipelineControllerIF.EX)
