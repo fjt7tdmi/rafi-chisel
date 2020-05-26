@@ -4,19 +4,6 @@ import chisel3._
 import chisel3.util._
 import scala.annotation.switch
 
-object  Alu {
-    val CMD_ADD  = "b0000".U(4.W)
-    val CMD_SUB  = "b1000".U(4.W)
-    val CMD_SLL  = "b0001".U(4.W)
-    val CMD_SLT  = "b0010".U(4.W)
-    val CMD_SLTU = "b0011".U(4.W)
-    val CMD_XOR  = "b0100".U(4.W)
-    val CMD_SRL  = "b0101".U(4.W)
-    val CMD_SRA  = "b1101".U(4.W)
-    val CMD_OR   = "b0110".U(4.W)
-    val CMD_AND  = "b0111".U(4.W)
-}
-
 class Alu extends Module {
     val io = IO(new Bundle {
         val cmd = Input(UInt(4.W))
@@ -44,38 +31,38 @@ class Alu extends Module {
 
     result_64 := 0.U
     switch (io.cmd) {
-        is (Alu.CMD_ADD) {
+        is (AluCmd.ADD) {
             result_64 := src1_64 + src2_64
         }
-        is (Alu.CMD_SUB) {
+        is (AluCmd.SUB) {
             result_64 := src1_64 - src2_64
         }
-        is (Alu.CMD_SLL) {
+        is (AluCmd.SLL) {
             result_64 := src1_64 << src2_64(5, 0)
         }
-        is (Alu.CMD_SLT) {
+        is (AluCmd.SLT) {
             when (src1_64.asSInt() < src2_64.asSInt()) {
                 result_64 := 1.U
             }
         }
-        is (Alu.CMD_SLTU) {
+        is (AluCmd.SLTU) {
             when (src1_64 < src2_64) {
                 result_64 := 1.U
             }
         }
-        is (Alu.CMD_XOR) {
+        is (AluCmd.XOR) {
             result_64 := src1_64 ^ src2_64
         }
-        is (Alu.CMD_SRL) {
+        is (AluCmd.SRL) {
             result_64 := src1_64 >> src2_64(5, 0)
         }
-        is (Alu.CMD_SRA) {
+        is (AluCmd.SRA) {
             result_64 := (src1_64.asSInt() >> src2_64(5, 0)).asUInt()
         }
-        is (Alu.CMD_OR) {
+        is (AluCmd.OR) {
             result_64 := src1_64 | src2_64
         }
-        is (Alu.CMD_AND) {
+        is (AluCmd.AND) {
             result_64 := src1_64 & src2_64
         }
     }
@@ -90,38 +77,38 @@ class Alu extends Module {
 
     result_32 := 0.U
     switch (io.cmd) {
-        is (Alu.CMD_ADD) {
+        is (AluCmd.ADD) {
             result_32 := src1_32 + src2_32
         }
-        is (Alu.CMD_SUB) {
+        is (AluCmd.SUB) {
             result_32 := src1_32 - src2_32
         }
-        is (Alu.CMD_SLL) {
+        is (AluCmd.SLL) {
             result_32 := src1_32 << src2_32(4, 0)
         }
-        is (Alu.CMD_SLT) {
+        is (AluCmd.SLT) {
             when (src1_32.asSInt() < src2_32.asSInt()) {
                 result_32 := 1.U
             }
         }
-        is (Alu.CMD_SLTU) {
+        is (AluCmd.SLTU) {
             when (src1_32 < src2_32) {
                 result_32 := 1.U
             }
         }
-        is (Alu.CMD_XOR) {
+        is (AluCmd.XOR) {
             result_32 := src1_32 ^ src2_32
         }
-        is (Alu.CMD_SRL) {
+        is (AluCmd.SRL) {
             result_32 := src1_32 >> src2_32(4, 0)
         }
-        is (Alu.CMD_SRA) {
+        is (AluCmd.SRA) {
             result_32 := (src1_32.asSInt() >> src2_32(4, 0)).asUInt()
         }
-        is (Alu.CMD_OR) {
+        is (AluCmd.OR) {
             result_32 := src1_32 | src2_32
         }
-        is (Alu.CMD_AND) {
+        is (AluCmd.AND) {
             result_32 := src1_32 & src2_32
         }
     }

@@ -23,6 +23,20 @@ object UnitType extends ChiselEnum {
     val MEM    = Value(4.U)
 }
 
+// TODO: use ChiselEnum
+object AluCmd {
+    val ADD  = "b0000".U(4.W)
+    val SUB  = "b1000".U(4.W)
+    val SLL  = "b0001".U(4.W)
+    val SLT  = "b0010".U(4.W)
+    val SLTU = "b0011".U(4.W)
+    val XOR  = "b0100".U(4.W)
+    val SRL  = "b0101".U(4.W)
+    val SRA  = "b1101".U(4.W)
+    val OR   = "b0110".U(4.W)
+    val AND  = "b0111".U(4.W)
+}
+
 object AluSrc1Type extends ChiselEnum {
     val ZERO = Value(0.U)
     val REG  = Value(1.U)
@@ -144,7 +158,7 @@ class DecodeStage extends Module {
     w_unknown := 1.U
     w_execute_unit := UnitType.ALU
     w_reg_write_enable := 0.U
-    w_alu_cmd := Alu.CMD_ADD
+    w_alu_cmd := AluCmd.ADD
     w_alu_is_word := 0.U
     w_alu_src1_type := AluSrc1Type.ZERO
     w_alu_src2_type := AluSrc2Type.ZERO
@@ -170,7 +184,7 @@ class DecodeStage extends Module {
             w_unknown := 0.U
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
-            w_alu_cmd := Alu.CMD_ADD
+            w_alu_cmd := AluCmd.ADD
             w_alu_is_word := 1.U
             w_alu_src1_type := AluSrc1Type.ZERO
             w_alu_src2_type := AluSrc2Type.IMM
@@ -181,7 +195,7 @@ class DecodeStage extends Module {
             w_unknown := 0.U
             w_execute_unit := UnitType.ALU
             w_reg_write_enable := 1.U
-            w_alu_cmd := Alu.CMD_ADD
+            w_alu_cmd := AluCmd.ADD
             w_alu_src1_type := AluSrc1Type.PC
             w_alu_src2_type := AluSrc2Type.IMM
             w_imm_type := ImmType.UNSIGNED
@@ -267,7 +281,7 @@ class DecodeStage extends Module {
             when (w_funct3 === "b000".U) {
                 // addiw
                 w_unknown := 0.U
-                w_alu_cmd := Alu.CMD_ADD
+                w_alu_cmd := AluCmd.ADD
                 w_imm_type := ImmType.IMM
             } .elsewhen (
                 (w_funct3 === "b001".U && w_funct7 === "b0000000".U) ||
