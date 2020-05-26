@@ -23,7 +23,7 @@ class RegReadStageIF extends Bundle {
     val branch_cmd = Output(UInt(3.W))
     val branch_always = Output(Bool())
     val branch_relative = Output(Bool())
-    val csr_cmd = Output(UInt(2.W))
+    val csr_cmd = Output(CsrCmd())
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
     val mem_cmd = Output(UInt(2.W))

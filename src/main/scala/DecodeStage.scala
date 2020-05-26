@@ -35,6 +35,13 @@ object AluSrc2Type extends ChiselEnum {
     val IMM  = Value(2.U)
 }
 
+object CsrCmd extends ChiselEnum {
+    val NONE  = Value(0.U)
+    val WRITE = Value(1.U)
+    val SET   = Value(2.U)
+    val CLEAR = Value(3.U)
+}
+
 class DecodeStageIF extends Bundle {
     val valid = Output(Bool())
     val pc = Output(UInt(64.W))
@@ -55,7 +62,7 @@ class DecodeStageIF extends Bundle {
     val branch_cmd = Output(UInt(3.W))
     val branch_always = Output(Bool())
     val branch_relative = Output(Bool())
-    val csr_cmd = Output(UInt(2.W))
+    val csr_cmd = Output(CsrCmd())
     val csr_addr = Output(UInt(12.W))
     val csr_use_imm = Output(Bool())
     val mem_cmd = Output(UInt(2.W))
@@ -108,7 +115,7 @@ class DecodeStage extends Module {
     val w_branch_cmd = Wire(UInt(3.W))
     val w_branch_always = Wire(Bool())
     val w_branch_relative = Wire(Bool())
-    val w_csr_cmd = Wire(UInt(2.W))
+    val w_csr_cmd = Wire(CsrCmd())
     val w_csr_addr = Wire(UInt(12.W))
     val w_csr_use_imm = Wire(Bool())
     val w_mem_cmd = Wire(UInt(2.W))
@@ -130,7 +137,7 @@ class DecodeStage extends Module {
     w_branch_cmd := BranchUnit.CMD_BEQ
     w_branch_always := 0.U
     w_branch_relative := 0.U
-    w_csr_cmd := Csr.CMD_NONE
+    w_csr_cmd := CsrCmd.NONE
     w_csr_addr := w_insn(31, 20)
     w_csr_use_imm := 0.U
     w_mem_cmd := MemUnit.CMD_NONE
@@ -329,7 +336,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_WRITE
+                    w_csr_cmd := CsrCmd.WRITE
                     w_csr_use_imm := 0.U
                 }
                 // csrrs
@@ -337,7 +344,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_CLEAR
+                    w_csr_cmd := CsrCmd.CLEAR
                     w_csr_use_imm := 0.U
                 }
                 // csrrc
@@ -345,7 +352,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_SET
+                    w_csr_cmd := CsrCmd.SET
                     w_csr_use_imm := 0.U
                 }
                 // csrrwi
@@ -353,7 +360,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_WRITE
+                    w_csr_cmd := CsrCmd.WRITE
                     w_csr_use_imm := 1.U
                 }
                 // csrrsi
@@ -361,7 +368,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_CLEAR
+                    w_csr_cmd := CsrCmd.CLEAR
                     w_csr_use_imm := 1.U
                 }
                 // csrrci
@@ -369,7 +376,7 @@ class DecodeStage extends Module {
                     w_unknown := 0.U
                     w_execute_unit := UnitType.CSR
                     w_reg_write_enable := 1.U
-                    w_csr_cmd := Csr.CMD_SET
+                    w_csr_cmd := CsrCmd.SET
                     w_csr_use_imm := 1.U
                 }
             }

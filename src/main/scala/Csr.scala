@@ -26,7 +26,7 @@ object  Csr {
 
 class CsrExecuteIF extends Bundle {
     val valid = Input(Bool())
-    val cmd = Input(UInt(2.W))
+    val cmd = Input(CsrCmd())
     val addr = Input(UInt(12.W))
     val operand = Input(UInt(64.W))
     val read_value = Output(UInt(64.W))
@@ -88,10 +88,10 @@ class Csr extends Module {
 
     w_write_value := io.ex.operand
     switch (io.ex.cmd) {
-        is (Csr.CMD_SET) {
+        is (CsrCmd.SET) {
             w_write_value := w_read_value | io.ex.operand
         }
-        is (Csr.CMD_CLEAR) {
+        is (CsrCmd.CLEAR) {
             w_write_value := w_read_value & (~io.ex.operand)
         }
     }
@@ -99,7 +99,7 @@ class Csr extends Module {
     // Register Write
     val w_we = Wire(Bool())
 
-    w_we := io.ex.valid && (io.ex.cmd != Csr.CMD_NONE)
+    w_we := io.ex.valid && (io.ex.cmd === CsrCmd.WRITE || io.ex.cmd === CsrCmd.SET || io.ex.cmd === CsrCmd.CLEAR)
 
     val w_mstatus_we    = Wire(Bool())
     val w_misa_we       = Wire(Bool())
