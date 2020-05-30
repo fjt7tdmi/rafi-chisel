@@ -87,15 +87,15 @@ class ExecuteStage(val dcache_hex_path: String) extends Module {
     val w_branch_taken = Wire(Bool())
     val w_branch_target = Wire(UInt(64.W))
 
-    w_reg_write_value := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === UnitType.ALU) -> m_alu.io.result,
-        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.rd_value,
-        (io.prev.execute_unit === UnitType.CSR) -> io.csr.read_value,
-        (io.prev.execute_unit === UnitType.MEM) -> m_mem.io.result))
-    w_branch_taken := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.taken))
-    w_branch_target := MuxCase(0.U, Seq(
-        (io.prev.execute_unit === UnitType.BRANCH) -> m_branch.io.target))
+    w_reg_write_value := MuxLookup(io.prev.execute_unit.asUInt(), 0.U, Seq(
+        UnitType.ALU.asUInt() -> m_alu.io.result,
+        UnitType.BRANCH.asUInt() -> m_branch.io.rd_value,
+        UnitType.CSR.asUInt() -> io.csr.read_value,
+        UnitType.MEM.asUInt() -> m_mem.io.result))
+    w_branch_taken := MuxLookup(io.prev.execute_unit.asUInt(), 0.U, Seq(
+        UnitType.BRANCH.asUInt() -> m_branch.io.taken))
+    w_branch_target := MuxLookup(io.prev.execute_unit.asUInt(), 0.U, Seq(
+        UnitType.BRANCH.asUInt() -> m_branch.io.target))
 
     m_bypass.io.rd_value := w_reg_write_value
 

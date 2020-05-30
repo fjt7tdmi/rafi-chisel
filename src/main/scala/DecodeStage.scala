@@ -437,13 +437,13 @@ class DecodeStage extends Module {
 
     val w_imm = Wire(UInt(64.W))
 
-    w_imm := MuxCase(0.U, Seq(
-        (w_imm_type === ImmType.UNSIGNED) -> w_imm_u,
-        (w_imm_type === ImmType.JUMP) -> w_imm_j,
-        (w_imm_type === ImmType.IMM) -> w_imm_i,
-        (w_imm_type === ImmType.BRANCH) -> w_imm_b,
-        (w_imm_type === ImmType.SHIFT) -> w_imm_shift,
-        (w_imm_type === ImmType.STORE) -> w_imm_store))
+    w_imm := MuxLookup(w_imm_type.asUInt(), 0.U, Seq(
+        ImmType.UNSIGNED.asUInt() -> w_imm_u,
+        ImmType.JUMP.asUInt() -> w_imm_j,
+        ImmType.IMM.asUInt() -> w_imm_i,
+        ImmType.BRANCH.asUInt() -> w_imm_b,
+        ImmType.SHIFT.asUInt() -> w_imm_shift,
+        ImmType.STORE.asUInt() -> w_imm_store))
 
     // Pipeline register
     io.next.valid := RegNext(w_valid, 0.U)

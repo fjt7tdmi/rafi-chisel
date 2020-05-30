@@ -22,12 +22,12 @@ class Alu extends Module {
     val w_src2_64 = Wire(UInt(64.W))
     val w_result_64 = Wire(UInt(64.W))
 
-    w_src1_64 := MuxCase(0.U, Seq(
-        (io.src1_type === AluSrc1Type.REG) -> io.rs1_value,
-        (io.src1_type === AluSrc1Type.PC) -> io.pc))
-    w_src2_64 := MuxCase(0.U, Seq(
-        (io.src2_type === AluSrc2Type.REG) -> io.rs2_value,
-        (io.src2_type === AluSrc2Type.IMM) -> io.imm))
+    w_src1_64 := MuxLookup(io.src1_type.asUInt(), 0.U, Seq(
+        AluSrc1Type.REG.asUInt() -> io.rs1_value,
+        AluSrc1Type.PC.asUInt() -> io.pc))
+    w_src2_64 := MuxLookup(io.src2_type.asUInt(), 0.U, Seq(
+        AluSrc2Type.REG.asUInt() -> io.rs2_value,
+        AluSrc2Type.IMM.asUInt() -> io.imm))
 
     w_result_64 := 0.U
     switch (io.cmd) {

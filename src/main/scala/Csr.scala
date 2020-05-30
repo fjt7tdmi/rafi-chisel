@@ -64,19 +64,19 @@ class Csr extends Module {
     // Register Read
     val w_read_value = Wire(UInt(64.W))
 
-    w_read_value := MuxCase(0.U, Seq(
-        (io.ex.addr === CsrAddr.MSTATUS) -> r_mstatus,
-        (io.ex.addr === CsrAddr.MISA) -> r_misa,
-        (io.ex.addr === CsrAddr.MEDELEG) -> r_medeleg,
-        (io.ex.addr === CsrAddr.MIDELEG) -> r_mideleg,
-        (io.ex.addr === CsrAddr.MIE) -> r_mie,
-        (io.ex.addr === CsrAddr.MTVEC) -> r_mtvec,
-        (io.ex.addr === CsrAddr.MCOUNTEREN) -> r_mcounteren,
-        (io.ex.addr === CsrAddr.MSCRATCH) -> r_mscratch,
-        (io.ex.addr === CsrAddr.MEPC) -> r_mepc,
-        (io.ex.addr === CsrAddr.MCAUSE) -> r_mcause,
-        (io.ex.addr === CsrAddr.MTVAL) -> r_mtval,
-        (io.ex.addr === CsrAddr.MIP) -> r_mip))
+    w_read_value := MuxLookup(io.ex.addr, 0.U, Seq(
+        CsrAddr.MSTATUS -> r_mstatus,
+        CsrAddr.MISA -> r_misa,
+        CsrAddr.MEDELEG -> r_medeleg,
+        CsrAddr.MIDELEG -> r_mideleg,
+        CsrAddr.MIE -> r_mie,
+        CsrAddr.MTVEC -> r_mtvec,
+        CsrAddr.MCOUNTEREN -> r_mcounteren,
+        CsrAddr.MSCRATCH -> r_mscratch,
+        CsrAddr.MEPC -> r_mepc,
+        CsrAddr.MCAUSE -> r_mcause,
+        CsrAddr.MTVAL -> r_mtval,
+        CsrAddr.MIP -> r_mip))
 
     // Calculation
     val w_write_value = Wire(UInt(64.W))
