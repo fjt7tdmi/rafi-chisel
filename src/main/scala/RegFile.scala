@@ -27,7 +27,7 @@ class RegFile extends Module {
     io.r.rs1_value := m_mem(io.r.rs1)
     io.r.rs2_value := m_mem(io.r.rs2)
 
-    when (io.w.write_enable && io.w.rd != 0.U) {
+    when (io.w.write_enable && io.w.rd =/= 0.U) {
         m_mem.write(io.w.rd, io.w.value)
     }
 }

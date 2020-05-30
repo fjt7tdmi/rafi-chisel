@@ -25,7 +25,7 @@ class BypassLogic extends Module {
 
     for (i <- 0 until DEPTH) {
         if (i == 0) {
-            r_valids(i) := Mux(io.flush, 0.U, (io.valid && io.rd != 0.U))
+            r_valids(i) := Mux(io.flush, 0.U, (io.valid && io.rd =/= 0.U))
             r_rds(i) := io.rd
             r_values(i) := io.rd_value
         } else {

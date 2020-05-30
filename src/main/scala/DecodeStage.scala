@@ -231,7 +231,7 @@ class DecodeStage extends Module {
         }
         is ("b1100011".U) {
             // beq, bne, blt, bge, bltu, bgeu
-            when (w_funct3(2, 1) != "b01".U) {
+            when (w_funct3(2, 1) =/= "b01".U) {
                 w_unknown := 0.U
                 w_execute_unit := UnitType.BRANCH
                 w_branch_cmd := w_funct3
@@ -240,7 +240,7 @@ class DecodeStage extends Module {
         }
         is ("b0000011".U) {
             // lb, lh, lw, ld, lbu, lhu, lwu
-            when (w_funct3 != "b111".U) {
+            when (w_funct3 =/= "b111".U) {
                 w_unknown := 0.U
                 w_execute_unit := UnitType.MEM
                 w_reg_write_enable := 1.U

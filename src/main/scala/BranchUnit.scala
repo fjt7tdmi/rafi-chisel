@@ -28,7 +28,7 @@ class BranchUnit extends Module {
             }
         }
         is (BranchCmd.BNE) {
-            when (io.rs1_value != io.rs2_value) {
+            when (io.rs1_value =/= io.rs2_value) {
                 io.taken := 1.U
             }
         }
